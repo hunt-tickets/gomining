@@ -8,3 +8,4 @@ export { TextInput, SliderInput, SwitchInput, DatePicker, type TextInputProps, t
 export { MetricDisplay, type MetricDisplayProps, type MetricFormat, type MetricSize, type MetricTrend } from './MetricDisplay';
 export { Alert, type AlertProps, type AlertVariant } from './Alert';
 export { CurrencyPicker, type CurrencyPickerProps } from './CurrencyPicker';
+export { ImagePicker, type ImagePickerProps } from './ImagePicker';

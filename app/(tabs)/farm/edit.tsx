@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Button, Icon, Spacer } from '@/components/atoms';
-import { Card, TextInput, SliderInput } from '@/components/molecules';
+import { Card, TextInput, SliderInput, ImagePicker } from '@/components/molecules';
 import { useFarmContext } from '@/contexts';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -22,6 +22,7 @@ export default function EditMinerScreen() {
   const [name, setName] = useState('');
   const [hashrate, setHashrate] = useState(100);
   const [efficiency, setEfficiency] = useState(35);
+  const [image, setImage] = useState<string | undefined>(undefined);
 
   // Load miner data on mount
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function EditMinerScreen() {
       setName(miner.name);
       setHashrate(miner.hashrate);
       setEfficiency(miner.efficiency);
+      setImage(miner.image);
     }
   }, [miner]);
 
@@ -39,6 +41,7 @@ export default function EditMinerScreen() {
       name: name.trim(),
       hashrate,
       efficiency,
+      image,
     });
 
     router.back();
@@ -90,6 +93,15 @@ export default function EditMinerScreen() {
         <Text variant="body" color="muted">Update {miner.name} configuration</Text>
 
         <Spacer size={6} />
+
+        <ImagePicker
+          value={image}
+          onChange={setImage}
+          label="Miner Image (Optional)"
+          placeholder="Add Photo"
+        />
+
+        <Spacer size={4} />
 
         <Card padding="lg">
           <TextInput

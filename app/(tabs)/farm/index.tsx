@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
@@ -85,7 +85,14 @@ function MinerCard({ miner, onPress }: MinerCardProps) {
     <GlassCard onPress={onPress} padding="md">
       <View style={styles.minerHeader}>
         <View style={styles.minerTitleRow}>
-          <Icon name="hardware-chip" size={20} color="brand" />
+          {miner.image ? (
+            <Image
+              source={{ uri: miner.image }}
+              style={styles.minerImage}
+            />
+          ) : (
+            <Icon name="hardware-chip" size={20} color="brand" />
+          )}
           <Text variant="h4">{miner.name}</Text>
         </View>
         <Icon name="chevron-forward" size={20} color="muted" />
@@ -321,6 +328,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  minerImage: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
   },
   minerMetrics: {
     flexDirection: 'row',

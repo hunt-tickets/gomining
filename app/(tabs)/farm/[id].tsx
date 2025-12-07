@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, ScrollView, StyleSheet, Pressable, Modal, TouchableWithoutFeedback } from 'react-native';
+import { View, ScrollView, StyleSheet, Pressable, Modal, TouchableWithoutFeedback, Image } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
@@ -554,7 +554,14 @@ export default function MinerDetailScreen() {
       {/* Title */}
       <View style={styles.titleContainer}>
         <View style={styles.titleRow}>
-          <Icon name="hardware-chip" size={28} color="brand" />
+          {miner.image ? (
+            <Image
+              source={{ uri: miner.image }}
+              style={styles.minerTitleImage}
+            />
+          ) : (
+            <Icon name="hardware-chip" size={28} color="brand" />
+          )}
           <Text variant="h2">{miner.name}</Text>
         </View>
         <Text variant="body" color="muted">{miner.hashrate} TH/s • {miner.efficiency} W/TH</Text>
@@ -630,6 +637,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     marginBottom: 4,
+  },
+  minerTitleImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
   },
   tabContainer: {
     flexDirection: 'row',

@@ -13,6 +13,7 @@ export interface Miner {
   name: string;
   hashrate: number; // TH/s
   efficiency: number; // W/TH
+  image?: string; // Optional image URI (local file or base64)
   createdAt: string;
   updatedAt: string;
 }
