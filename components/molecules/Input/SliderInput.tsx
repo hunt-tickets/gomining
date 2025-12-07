@@ -63,9 +63,18 @@ export function SliderInput({
     }
   }, [value, isEditing]);
 
+  // Handle input text change - replace comma with period for decimal
+  const handleInputChange = (text: string) => {
+    // Replace comma with period for decimal separator
+    const normalizedText = text.replace(',', '.');
+    setInputValue(normalizedText);
+  };
+
   // Handle manual input submission
   const handleInputSubmit = () => {
-    const parsed = parseFloat(inputValue);
+    // Replace comma with period before parsing
+    const normalizedInput = inputValue.replace(',', '.');
+    const parsed = parseFloat(normalizedInput);
     if (!isNaN(parsed)) {
       // Clamp to min/max
       let newValue = Math.max(min, Math.min(max, parsed));
@@ -73,8 +82,9 @@ export function SliderInput({
       if (step) {
         newValue = Math.round(newValue / step) * step;
       }
-      // Round to decimal places
-      newValue = parseFloat(newValue.toFixed(decimals));
+      // Round to decimal places (max 2)
+      const effectiveDecimals = Math.min(decimals, 2);
+      newValue = parseFloat(newValue.toFixed(effectiveDecimals));
       onValueChange(newValue);
       setInputValue(newValue.toString());
     } else {
@@ -197,7 +207,7 @@ export function SliderInput({
                   },
                 ]}
                 value={inputValue}
-                onChangeText={setInputValue}
+                onChangeText={handleInputChange}
                 onBlur={handleInputSubmit}
                 onSubmitEditing={handleInputSubmit}
                 keyboardType="decimal-pad"
@@ -288,6 +298,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
+    // @ts-ignore - Web-specific property to remove focus outline
+    outlineStyle: 'none',
+    outlineWidth: 0,
   },
   unitLabel: {
     marginLeft: 4,
