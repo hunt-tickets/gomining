@@ -1,18 +1,14 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { useTheme } from '@/theme';
 import { Icon, IconPresets } from '@/components/atoms';
 
 // ═══════════════════════════════════════════════════════════════════
 // TAB LAYOUT
-// Using JavaScript Tabs for cross-platform compatibility
-// Native Tabs can be enabled for iOS 26+ when needed
 // ═══════════════════════════════════════════════════════════════════
 
 export default function TabLayout() {
-  const { tokens, isDark } = useTheme();
-
+  const { tokens } = useTheme();
   const { tabBar } = tokens.components;
 
   return (
@@ -37,7 +33,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="farm/index"
+        name="farm"
         options={{
           title: 'My Farm',
           tabBarIcon: ({ focused, color }) => (
@@ -76,7 +72,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings/index"
+        name="settings"
         options={{
           title: 'Settings',
           tabBarIcon: ({ focused, color }) => (
@@ -86,38 +82,6 @@ export default function TabLayout() {
               color={color}
             />
           ),
-        }}
-      />
-
-      {/* Hidden screens */}
-      <Tabs.Screen
-        name="farm/[id]"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="farm/add"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="settings/profile"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="settings/appearance"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="settings/about"
-        options={{
-          href: null,
         }}
       />
     </Tabs>
