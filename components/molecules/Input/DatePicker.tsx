@@ -10,6 +10,7 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useTheme } from '@/theme';
 import { Text, Icon, Spacer, Button } from '@/components/atoms';
@@ -255,64 +256,62 @@ export function DatePicker({
         transparent
         onRequestClose={() => setIsOpen(false)}
       >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setIsOpen(false)}
-        >
-          <Pressable
-            style={[styles.modalContainer, { backgroundColor: tokens.colors.background.secondary }]}
-            onPress={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <View style={styles.modalHeader}>
-              <Text variant="h3">Select Date</Text>
-              <Pressable onPress={() => setIsOpen(false)}>
-                <Icon name="close" size={24} color="primary" />
-              </Pressable>
-            </View>
+        <TouchableWithoutFeedback onPress={() => setIsOpen(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={[styles.modalContainer, { backgroundColor: tokens.colors.background.secondary }]}>
+                {/* Header */}
+                <View style={styles.modalHeader}>
+                  <Text variant="h3">Select Date</Text>
+                  <Pressable onPress={() => setIsOpen(false)}>
+                    <Icon name="close" size={24} color="primary" />
+                  </Pressable>
+                </View>
 
-            <ScrollView contentContainerStyle={styles.modalContent}>
-              <Calendar
-                selectedDate={value}
-                onSelectDate={handleSelect}
-                minDate={minDate}
-                maxDate={maxDate}
-              />
+                <ScrollView contentContainerStyle={styles.modalContent}>
+                  <Calendar
+                    selectedDate={value}
+                    onSelectDate={handleSelect}
+                    minDate={minDate}
+                    maxDate={maxDate}
+                  />
 
-              <Spacer size={6} />
+                  <Spacer size={6} />
 
-              {/* Quick select buttons */}
-              <View style={styles.quickSelect}>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onPress={() => handleSelect(formatDate(
-                    new Date().getFullYear(),
-                    new Date().getMonth(),
-                    new Date().getDate()
-                  ))}
-                >
-                  Today
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onPress={() => {
-                    const yesterday = new Date();
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    handleSelect(formatDate(
-                      yesterday.getFullYear(),
-                      yesterday.getMonth(),
-                      yesterday.getDate()
-                    ));
-                  }}
-                >
-                  Yesterday
-                </Button>
+                  {/* Quick select buttons */}
+                  <View style={styles.quickSelect}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onPress={() => handleSelect(formatDate(
+                        new Date().getFullYear(),
+                        new Date().getMonth(),
+                        new Date().getDate()
+                      ))}
+                    >
+                      Today
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onPress={() => {
+                        const yesterday = new Date();
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        handleSelect(formatDate(
+                          yesterday.getFullYear(),
+                          yesterday.getMonth(),
+                          yesterday.getDate()
+                        ));
+                      }}
+                    >
+                      Yesterday
+                    </Button>
+                  </View>
+                </ScrollView>
               </View>
-            </ScrollView>
-          </Pressable>
-        </Pressable>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </>
   );

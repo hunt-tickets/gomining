@@ -14,8 +14,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  TouchableWithoutFeedback,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Icon, Spacer } from '@/components/atoms';
 import { CURRENCIES, getCurrencyInfo } from '@/types/currency';
@@ -131,7 +131,6 @@ function CurrencyItem({ currency, isSelected, onPress }: CurrencyItemProps) {
 
 export function CurrencyPicker({ value, onChange, label, filterType = 'all' }: CurrencyPickerProps) {
   const { tokens } = useTheme();
-  const insets = useSafeAreaInsets();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -216,68 +215,74 @@ export function CurrencyPicker({ value, onChange, label, filterType = 'all' }: C
       {/* Modal */}
       <Modal
         visible={isOpen}
-        animationType="slide"
-        presentationStyle="pageSheet"
+        animationType="fade"
+        transparent
         onRequestClose={() => setIsOpen(false)}
       >
-        <KeyboardAvoidingView
-          style={[styles.modal, { backgroundColor: tokens.colors.background.primary }]}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          {/* Header */}
-          <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }]}>
-            <Text variant="h3">Select Currency</Text>
-            <Pressable onPress={() => setIsOpen(false)}>
-              <Icon name="close" size={24} color="primary" />
-            </Pressable>
-          </View>
+        <TouchableWithoutFeedback onPress={() => setIsOpen(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <KeyboardAvoidingView
+                style={[styles.modalContainer, { backgroundColor: tokens.colors.background.secondary }]}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              >
+                {/* Header */}
+                <View style={styles.modalHeader}>
+                  <Text variant="h3">Select Currency</Text>
+                  <Pressable onPress={() => setIsOpen(false)}>
+                    <Icon name="close" size={24} color="primary" />
+                  </Pressable>
+                </View>
 
-          {/* Search */}
-          <View style={[styles.searchContainer, { borderBottomColor: tokens.colors.border.muted }]}>
-            <View
-              style={[
-                styles.searchInput,
-                { backgroundColor: tokens.colors.background.tertiary },
-              ]}
-            >
-              <Icon name="search" size={20} color="muted" />
-              <TextInput
-                style={[styles.searchTextInput, { color: tokens.colors.text.primary }]}
-                placeholder="Search currencies..."
-                placeholderTextColor={tokens.colors.text.muted}
-                value={search}
-                onChangeText={setSearch}
-                autoCapitalize="characters"
-                autoCorrect={false}
-              />
-              {search.length > 0 && (
-                <Pressable onPress={() => setSearch('')}>
-                  <Icon name="close-circle" size={20} color="muted" />
-                </Pressable>
-              )}
-            </View>
-          </View>
+                {/* Search */}
+                <View style={[styles.searchContainer, { borderBottomColor: tokens.colors.border.muted }]}>
+                  <View
+                    style={[
+                      styles.searchInput,
+                      { backgroundColor: tokens.colors.background.tertiary },
+                    ]}
+                  >
+                    <Icon name="search" size={20} color="muted" />
+                    <TextInput
+                      style={[styles.searchTextInput, { color: tokens.colors.text.primary }]}
+                      placeholder="Search currencies..."
+                      placeholderTextColor={tokens.colors.text.muted}
+                      value={search}
+                      onChangeText={setSearch}
+                      autoCapitalize="characters"
+                      autoCorrect={false}
+                    />
+                    {search.length > 0 && (
+                      <Pressable onPress={() => setSearch('')}>
+                        <Icon name="close-circle" size={20} color="muted" />
+                      </Pressable>
+                    )}
+                  </View>
+                </View>
 
-          {/* Currency List */}
-          <FlatList
-            data={filteredCurrencies}
-            keyExtractor={(item) => item.code}
-            renderItem={({ item }) => (
-              <CurrencyItem
-                currency={item}
-                isSelected={item.code === value}
-                onPress={() => handleSelect(item)}
-              />
-            )}
-            contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
-            ListEmptyComponent={
-              <View style={styles.emptyState}>
-                <Text variant="body" color="muted">No currencies found</Text>
-              </View>
-            }
-            ItemSeparatorComponent={() => <View style={{ height: 1 }} />}
-          />
-        </KeyboardAvoidingView>
+                {/* Currency List */}
+                <FlatList
+                  data={filteredCurrencies}
+                  keyExtractor={(item) => item.code}
+                  renderItem={({ item }) => (
+                    <CurrencyItem
+                      currency={item}
+                      isSelected={item.code === value}
+                      onPress={() => handleSelect(item)}
+                    />
+                  )}
+                  contentContainerStyle={{ paddingBottom: 16 }}
+                  ListEmptyComponent={
+                    <View style={styles.emptyState}>
+                      <Text variant="body" color="muted">No currencies found</Text>
+                    </View>
+                  }
+                  ItemSeparatorComponent={() => <View style={{ height: 1 }} />}
+                />
+              </KeyboardAvoidingView>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </>
   );
@@ -311,15 +316,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modal: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContainer: {
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
   searchContainer: {
     paddingHorizontal: 16,
