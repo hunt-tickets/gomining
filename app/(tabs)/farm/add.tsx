@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Button, Icon, Spacer } from '@/components/atoms';
 import { Card, TextInput, SliderInput } from '@/components/molecules';
+import { useFarmContext } from '@/contexts';
 
 // ═══════════════════════════════════════════════════════════════════
 // ADD MINER SCREEN
@@ -13,14 +14,32 @@ import { Card, TextInput, SliderInput } from '@/components/molecules';
 export default function AddMinerScreen() {
   const { tokens } = useTheme();
   const insets = useSafeAreaInsets();
+  const { addMiner } = useFarmContext();
 
   const [name, setName] = useState('');
   const [hashrate, setHashrate] = useState(100);
   const [efficiency, setEfficiency] = useState(35);
 
+  // Discount sliders
+  const [tokenDays, setTokenDays] = useState(0);
+  const [vipLevel, setVipLevel] = useState(0);
+  const [dailyClicks, setDailyClicks] = useState(0);
+
   const handleSave = () => {
-    // TODO: Save miner to storage
-    console.log({ name, hashrate, efficiency });
+    if (!name.trim()) return;
+
+    // Save miner to storage via hook
+    addMiner({
+      name: name.trim(),
+      hashrate,
+      efficiency,
+      discounts: {
+        tokenDays,
+        vipLevel,
+        dailyClicks,
+      },
+    });
+
     router.back();
   };
 
@@ -92,12 +111,53 @@ export default function AddMinerScreen() {
 
         <Spacer size={4} />
 
+        <Card padding="lg">
+          <Text variant="label" color="muted">DISCOUNTS</Text>
+          <Spacer size={4} />
+
+          <SliderInput
+            label="Token Coverage (days)"
+            value={tokenDays}
+            onValueChange={setTokenDays}
+            min={0}
+            max={400}
+            step={10}
+            valueFormatter={(v) => v === 0 ? 'None' : `${v} days`}
+          />
+
+          <Spacer size={6} />
+
+          <SliderInput
+            label="VIP Level"
+            value={vipLevel}
+            onValueChange={setVipLevel}
+            min={0}
+            max={20}
+            step={1}
+            valueFormatter={(v) => v === 0 ? 'None' : `Level ${v}`}
+          />
+
+          <Spacer size={6} />
+
+          <SliderInput
+            label="Daily Clicks Streak"
+            value={dailyClicks}
+            onValueChange={setDailyClicks}
+            min={0}
+            max={10}
+            step={1}
+            valueFormatter={(v) => v === 0 ? 'None' : `${v} days`}
+          />
+        </Card>
+
+        <Spacer size={4} />
+
         <Card padding="md" variant="outlined">
           <View style={styles.infoRow}>
             <Icon name="information-circle-outline" size={20} color="muted" />
             <Text variant="bodySmall" color="muted" style={{ flex: 1 }}>
-              You can adjust discounts after creating the miner. The efficiency
-              can be upgraded from 35 W/TH down to 15 W/TH.
+              Discounts reduce your electricity and service fees. Token coverage gives up to 20%,
+              VIP up to 6%, and daily clicks up to 3%.
             </Text>
           </View>
         </Card>

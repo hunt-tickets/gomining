@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Button, Icon, Spacer, Badge } from '@/components/atoms';
 import { Card, GlassCard, MetricDisplay } from '@/components/molecules';
-import { useFarm } from '@/hooks/useFarm';
+import { useFarmContext } from '@/contexts';
 import type { MinerWithStats } from '@/types';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -177,7 +177,7 @@ function FarmSummary({ miners }: FarmSummaryProps) {
 export default function FarmScreen() {
   const { tokens } = useTheme();
   const insets = useSafeAreaInsets();
-  const { minersWithStats, isLoading } = useFarm();
+  const { minersWithStats, isLoading } = useFarmContext();
 
   const handleMinerPress = (id: string) => {
     router.push(`/farm/${id}`);

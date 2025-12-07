@@ -5,7 +5,7 @@ import { useTheme } from '@/theme';
 import { Text, Icon, Spacer, Badge } from '@/components/atoms';
 import { Card, GlassCard, MetricDisplay, Alert } from '@/components/molecules';
 import { useBitcoinData } from '@/hooks/useBitcoinData';
-import { useFarm } from '@/hooks/useFarm';
+import { useFarmContext } from '@/contexts';
 
 // ═══════════════════════════════════════════════════════════════════
 // EMPTY STATE COMPONENT
@@ -199,8 +199,15 @@ export default function DashboardScreen() {
   // Get live Bitcoin data
   const { price, priceChange24h, difficulty, isLoading: btcLoading, error } = useBitcoinData();
 
-  // Get farm data with live prices
-  const { totalDailyProfitUSD, totalHashrate, minerCount } = useFarm(price, difficulty * 1e12);
+  // Get farm data from context
+  const { totalDailyProfitUSD, totalHashrate, minerCount, setBtcData } = useFarmContext();
+
+  // Update context with BTC data when it changes
+  React.useEffect(() => {
+    if (price > 0 && difficulty > 0) {
+      setBtcData(price, difficulty * 1e12);
+    }
+  }, [price, difficulty, setBtcData]);
 
   const hasMiners = minerCount > 0;
 
