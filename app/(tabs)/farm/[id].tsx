@@ -118,7 +118,7 @@ function TabSelector({ activeTab, onTabChange, incomeCount, investmentCount }: T
 // ═══════════════════════════════════════════════════════════════════
 
 interface OverviewTabProps {
-  miner: NonNullable<ReturnType<typeof useFarmContext>['getMinerWithStats']>;
+  miner: NonNullable<ReturnType<ReturnType<typeof useFarmContext>['getMinerWithStats']>>;
 }
 
 function OverviewTab({ miner }: OverviewTabProps) {
@@ -209,8 +209,8 @@ function OverviewTab({ miner }: OverviewTabProps) {
           </View>
           <View style={styles.configItem}>
             <Icon name="pricetag" size={20} color="brand" />
-            <Text variant="bodySmall" color="muted">Discount</Text>
-            <Text variant="body" weight="semibold">{miner.discountPercent.toFixed(1)}%</Text>
+            <Text variant="bodySmall" color="muted">Avg. Discount</Text>
+            <Text variant="body" weight="semibold">{miner.averageDiscountPercent.toFixed(1)}%</Text>
           </View>
         </View>
       </Card>

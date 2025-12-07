@@ -252,7 +252,15 @@ export function FarmProvider({ children }: { children: React.ReactNode }) {
 
   const minersWithStats = useMemo<MinerWithStats[]>(() => {
     return miners.map((miner) => {
-      // Calculate daily profit
+      // Get income records for this miner
+      const minerIncome = incomeRecords.filter((r) => r.minerId === miner.id);
+
+      // Calculate average discount from income records
+      const averageDiscountPercent = minerIncome.length > 0
+        ? minerIncome.reduce((sum, r) => sum + r.discountPercent, 0) / minerIncome.length
+        : 0;
+
+      // Calculate daily profit using average discount
       let dailyProfitBTC = 0;
       let dailyProfitUSD = 0;
 
@@ -262,7 +270,7 @@ export function FarmProvider({ children }: { children: React.ReactNode }) {
           efficiency: miner.efficiency,
           difficulty,
           btcPrice,
-          discountPercent: miner.discountPercent,
+          discountPercent: averageDiscountPercent,
         });
         dailyProfitBTC = result.netRewardBTC;
         dailyProfitUSD = result.netRewardUSD;
@@ -273,7 +281,6 @@ export function FarmProvider({ children }: { children: React.ReactNode }) {
       const totalInvestedUSD = minerInvestments.reduce((sum, i) => sum + i.amountUSD, 0);
 
       // Calculate total earned for this miner
-      const minerIncome = incomeRecords.filter((r) => r.minerId === miner.id);
       const totalEarnedUSD = minerIncome.reduce((sum, r) => sum + r.netIncomeUSD, 0);
 
       // Calculate ROI
@@ -288,6 +295,7 @@ export function FarmProvider({ children }: { children: React.ReactNode }) {
         totalInvestedUSD,
         totalEarnedUSD,
         roi,
+        averageDiscountPercent,
       };
     });
   }, [miners, btcPrice, difficulty, investments, incomeRecords]);

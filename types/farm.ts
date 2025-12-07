@@ -13,7 +13,6 @@ export interface Miner {
   name: string;
   hashrate: number; // TH/s
   efficiency: number; // W/TH
-  discountPercent: number; // Single discount field (0-29%)
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +24,8 @@ export interface MinerWithStats extends Miner {
   totalInvestedUSD: number;
   totalEarnedUSD: number;
   roi: number; // Percentage
+  // Average discount calculated from income records
+  averageDiscountPercent: number;
 }
 
 // ═══════════════════════════════════════════════════════════════════

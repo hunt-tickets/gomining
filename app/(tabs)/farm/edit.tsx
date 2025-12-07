@@ -22,7 +22,6 @@ export default function EditMinerScreen() {
   const [name, setName] = useState('');
   const [hashrate, setHashrate] = useState(100);
   const [efficiency, setEfficiency] = useState(35);
-  const [discountPercent, setDiscountPercent] = useState(0);
 
   // Load miner data on mount
   useEffect(() => {
@@ -30,7 +29,6 @@ export default function EditMinerScreen() {
       setName(miner.name);
       setHashrate(miner.hashrate);
       setEfficiency(miner.efficiency);
-      setDiscountPercent(miner.discountPercent);
     }
   }, [miner]);
 
@@ -41,7 +39,6 @@ export default function EditMinerScreen() {
       name: name.trim(),
       hashrate,
       efficiency,
-      discountPercent,
     });
 
     router.back();
@@ -137,26 +134,11 @@ export default function EditMinerScreen() {
 
         <Spacer size={4} />
 
-        <Card padding="lg">
-          <SliderInput
-            label="Total Discount"
-            value={discountPercent}
-            onValueChange={setDiscountPercent}
-            min={0}
-            max={29}
-            step={0.1}
-            unit="%"
-            decimals={1}
-          />
-        </Card>
-
-        <Spacer size={4} />
-
         <Card padding="md" variant="outlined">
           <View style={styles.infoRow}>
             <Icon name="information-circle-outline" size={20} color="muted" />
             <Text variant="bodySmall" color="muted" style={{ flex: 1 }}>
-              Update your discount percentage when your token coverage, VIP level, or other bonuses change.
+              Discount percentage is tracked per income record since it varies daily based on your GMT token coverage and VIP level.
             </Text>
           </View>
         </Card>

@@ -19,7 +19,6 @@ export default function AddMinerScreen() {
   const [name, setName] = useState('');
   const [hashrate, setHashrate] = useState(100);
   const [efficiency, setEfficiency] = useState(35);
-  const [discountPercent, setDiscountPercent] = useState(0);
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -29,7 +28,6 @@ export default function AddMinerScreen() {
       name: name.trim(),
       hashrate,
       efficiency,
-      discountPercent,
     });
 
     router.back();
@@ -105,27 +103,11 @@ export default function AddMinerScreen() {
 
         <Spacer size={4} />
 
-        <Card padding="lg">
-          <SliderInput
-            label="Total Discount"
-            value={discountPercent}
-            onValueChange={setDiscountPercent}
-            min={0}
-            max={29}
-            step={0.1}
-            unit="%"
-            decimals={1}
-          />
-        </Card>
-
-        <Spacer size={4} />
-
         <Card padding="md" variant="outlined">
           <View style={styles.infoRow}>
             <Icon name="information-circle-outline" size={20} color="muted" />
             <Text variant="bodySmall" color="muted" style={{ flex: 1 }}>
-              Enter your total discount percentage. This reduces your electricity and service fees.
-              Most platforms offer discounts up to 29% through tokens, VIP levels, or other rewards.
+              Discount percentage is tracked per income record since it varies daily based on your GMT token coverage and VIP level.
             </Text>
           </View>
         </Card>

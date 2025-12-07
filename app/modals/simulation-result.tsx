@@ -171,7 +171,7 @@ export default function SimulationResultModal() {
 
     // Get average discount from miners
     const avgDiscount = minersWithStats.length > 0
-      ? minersWithStats.reduce((sum, m) => sum + m.discountPercent, 0) / minersWithStats.length
+      ? minersWithStats.reduce((sum, m) => sum + m.averageDiscountPercent, 0) / minersWithStats.length
       : 10;
 
     const calculateProjection = (

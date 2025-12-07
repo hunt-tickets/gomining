@@ -67,6 +67,8 @@ export function useFarm(btcPrice: number = 0, difficulty: number = 0) {
   );
 
   // Calculate stats for each miner
+  // Note: This hook doesn't have access to income records, so averageDiscountPercent is always 0
+  // For full functionality with discount tracking, use FarmContext instead
   const minersWithStats = useMemo<MinerWithStats[]>(() => {
     if (btcPrice === 0 || difficulty === 0) {
       return miners.map((miner) => ({
@@ -76,6 +78,7 @@ export function useFarm(btcPrice: number = 0, difficulty: number = 0) {
         totalInvestedUSD: 0,
         totalEarnedUSD: 0,
         roi: 0,
+        averageDiscountPercent: 0,
       }));
     }
 
@@ -85,7 +88,7 @@ export function useFarm(btcPrice: number = 0, difficulty: number = 0) {
         efficiency: miner.efficiency,
         difficulty,
         btcPrice,
-        discountPercent: miner.discountPercent,
+        discountPercent: 0, // Discount is tracked per income record, not on miner
       });
 
       return {
@@ -95,6 +98,7 @@ export function useFarm(btcPrice: number = 0, difficulty: number = 0) {
         totalInvestedUSD: 0,
         totalEarnedUSD: 0,
         roi: 0,
+        averageDiscountPercent: 0,
       };
     });
   }, [miners, btcPrice, difficulty]);
