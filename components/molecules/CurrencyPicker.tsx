@@ -1,6 +1,6 @@
 /**
  * CurrencyPicker Component
- * Searchable dropdown for selecting currencies
+ * Searchable dropdown for selecting currencies with logos
  */
 
 import React, { useState, useMemo } from 'react';
@@ -13,6 +13,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
@@ -29,6 +30,63 @@ export interface CurrencyPickerProps {
   onChange: (currency: Currency) => void;
   label?: string;
   filterType?: 'all' | 'crypto' | 'fiat';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CURRENCY LOGO
+// ═══════════════════════════════════════════════════════════════════
+
+interface CurrencyLogoProps {
+  currency: CurrencyInfo;
+  size?: number;
+}
+
+function CurrencyLogo({ currency, size = 40 }: CurrencyLogoProps) {
+  const { tokens } = useTheme();
+  const [hasError, setHasError] = useState(false);
+
+  if (currency.logoUrl && !hasError) {
+    return (
+      <Image
+        source={{ uri: currency.logoUrl }}
+        style={[
+          styles.logoImage,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+          },
+        ]}
+        onError={() => setHasError(true)}
+      />
+    );
+  }
+
+  // Fallback to symbol
+  return (
+    <View
+      style={[
+        styles.logoFallback,
+        {
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor:
+            currency.type === 'crypto'
+              ? tokens.colors.brand.primaryMuted
+              : tokens.colors.semantic.infoMuted,
+        },
+      ]}
+    >
+      <Text
+        variant={size < 36 ? 'caption' : 'bodySmall'}
+        weight="bold"
+        color={currency.type === 'crypto' ? 'brand' : 'primary'}
+      >
+        {currency.symbol}
+      </Text>
+    </View>
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -54,16 +112,7 @@ function CurrencyItem({ currency, isSelected, onPress }: CurrencyItemProps) {
       onPress={onPress}
     >
       <View style={styles.currencyInfo}>
-        <View
-          style={[
-            styles.currencyIcon,
-            { backgroundColor: currency.type === 'crypto' ? tokens.colors.brand.primaryMuted : tokens.colors.semantic.infoMuted },
-          ]}
-        >
-          <Text variant="bodySmall" weight="bold" color={currency.type === 'crypto' ? 'brand' : 'primary'}>
-            {currency.symbol}
-          </Text>
-        </View>
+        <CurrencyLogo currency={currency} size={40} />
         <View>
           <Text variant="body" weight="semibold">{currency.code}</Text>
           <Text variant="caption" color="muted">{currency.name}</Text>
@@ -144,16 +193,20 @@ export function CurrencyPicker({ value, onChange, label, filterType = 'all' }: C
           onPress={() => setIsOpen(true)}
         >
           <View style={styles.triggerContent}>
-            <View
-              style={[
-                styles.triggerIcon,
-                { backgroundColor: tokens.colors.brand.primaryMuted },
-              ]}
-            >
-              <Text variant="caption" weight="bold" color="brand">
-                {selectedCurrency?.symbol || value}
-              </Text>
-            </View>
+            {selectedCurrency ? (
+              <CurrencyLogo currency={selectedCurrency} size={32} />
+            ) : (
+              <View
+                style={[
+                  styles.triggerIcon,
+                  { backgroundColor: tokens.colors.brand.primaryMuted },
+                ]}
+              >
+                <Text variant="caption" weight="bold" color="brand">
+                  {value}
+                </Text>
+              </View>
+            )}
             <Text variant="body" weight="semibold">{value}</Text>
           </View>
           <Icon name="chevron-down" size={20} color="muted" />
@@ -298,10 +351,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  currencyIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  logoImage: {
+    backgroundColor: 'transparent',
+  },
+  logoFallback: {
     alignItems: 'center',
     justifyContent: 'center',
   },
