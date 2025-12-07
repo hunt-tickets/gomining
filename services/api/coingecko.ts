@@ -1,10 +1,8 @@
 /**
- * CoinGecko API Service
- * Free API - No API key required
- * Rate limit: 10-30 calls/minute for free tier
+ * Bitcoin Price API Service
+ * Uses CoinCap API (better CORS support than CoinGecko)
+ * Fallback to mock data if API fails
  */
-
-const BASE_URL = 'https://api.coingecko.com/api/v3';
 
 // ═══════════════════════════════════════════════════════════════════
 // TYPES
@@ -25,33 +23,46 @@ export interface PriceHistory {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// API FUNCTIONS
+// COINCAP API (Better CORS support)
 // ═══════════════════════════════════════════════════════════════════
+
+const COINCAP_URL = 'https://api.coincap.io/v2';
 
 /**
  * Get current Bitcoin price with 24h change
  */
 export async function getBitcoinPrice(): Promise<BitcoinPrice> {
   try {
-    const response = await fetch(
-      `${BASE_URL}/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true&include_last_updated_at=true`
-    );
+    const response = await fetch(`${COINCAP_URL}/assets/bitcoin`, {
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
 
     if (!response.ok) {
-      throw new Error(`CoinGecko API error: ${response.status}`);
+      throw new Error(`CoinCap API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const result = await response.json();
+    const data = result.data;
+
     return {
-      usd: data.bitcoin.usd,
-      usd_24h_change: data.bitcoin.usd_24h_change,
-      usd_24h_vol: data.bitcoin.usd_24h_vol,
-      usd_market_cap: data.bitcoin.usd_market_cap,
-      last_updated_at: data.bitcoin.last_updated_at,
+      usd: parseFloat(data.priceUsd),
+      usd_24h_change: parseFloat(data.changePercent24Hr),
+      usd_24h_vol: parseFloat(data.volumeUsd24Hr),
+      usd_market_cap: parseFloat(data.marketCapUsd),
+      last_updated_at: Date.now(),
     };
   } catch (error) {
     console.error('Error fetching Bitcoin price:', error);
-    throw error;
+    // Return fallback data so the app still works
+    return {
+      usd: 0,
+      usd_24h_change: 0,
+      usd_24h_vol: 0,
+      usd_market_cap: 0,
+      last_updated_at: Date.now(),
+    };
   }
 }
 
@@ -61,18 +72,42 @@ export async function getBitcoinPrice(): Promise<BitcoinPrice> {
  */
 export async function getBitcoinPriceHistory(days: number = 30): Promise<PriceHistory> {
   try {
+    // CoinCap uses intervals: m1, m5, m15, m30, h1, h2, h6, h12, d1
+    const interval = days <= 1 ? 'm15' : days <= 7 ? 'h1' : 'd1';
+    const end = Date.now();
+    const start = end - days * 24 * 60 * 60 * 1000;
+
     const response = await fetch(
-      `${BASE_URL}/coins/bitcoin/market_chart?vs_currency=usd&days=${days}`
+      `${COINCAP_URL}/assets/bitcoin/history?interval=${interval}&start=${start}&end=${end}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+        },
+      }
     );
 
     if (!response.ok) {
-      throw new Error(`CoinGecko API error: ${response.status}`);
+      throw new Error(`CoinCap API error: ${response.status}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+    const prices: [number, number][] = result.data.map((item: any) => [
+      item.time,
+      parseFloat(item.priceUsd),
+    ]);
+
+    return {
+      prices,
+      market_caps: [],
+      total_volumes: [],
+    };
   } catch (error) {
     console.error('Error fetching price history:', error);
-    throw error;
+    return {
+      prices: [],
+      market_caps: [],
+      total_volumes: [],
+    };
   }
 }
 
@@ -81,22 +116,29 @@ export async function getBitcoinPriceHistory(days: number = 30): Promise<PriceHi
  */
 export async function getGominingPrice(): Promise<{ usd: number; usd_24h_change: number } | null> {
   try {
-    const response = await fetch(
-      `${BASE_URL}/simple/price?ids=gomining&vs_currencies=usd&include_24hr_change=true`
-    );
+    // Try to find GOMINING token on CoinCap
+    const response = await fetch(`${COINCAP_URL}/assets?search=gomining`, {
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
 
     if (!response.ok) {
       return null;
     }
 
-    const data = await response.json();
-    if (!data.gomining) {
+    const result = await response.json();
+    const token = result.data.find(
+      (t: any) => t.symbol.toLowerCase() === 'gmt' || t.name.toLowerCase().includes('gomining')
+    );
+
+    if (!token) {
       return null;
     }
 
     return {
-      usd: data.gomining.usd,
-      usd_24h_change: data.gomining.usd_24h_change,
+      usd: parseFloat(token.priceUsd),
+      usd_24h_change: parseFloat(token.changePercent24Hr),
     };
   } catch (error) {
     console.error('Error fetching GOMINING price:', error);

@@ -21,14 +21,28 @@ export const colors = {
     1000: '#0A0A0B',
   },
 
-  // Brand - Bitcoin Orange
+  // Brand - Purple
+  purple: {
+    50: '#F5F0FF',
+    100: '#EDE5FF',
+    200: '#D9CCFF',
+    300: '#B8A3FF',
+    400: '#9670FF',
+    500: '#7540EF', // Primary Brand Purple
+    600: '#6030D0',
+    700: '#4D25A8',
+    800: '#3D1D85',
+    900: '#2E1666',
+  },
+
+  // Accent - Orange (for warnings)
   orange: {
     50: '#FFF7ED',
     100: '#FFEDD5',
     200: '#FED7AA',
     300: '#FDBA74',
     400: '#FB923C',
-    500: '#F7931A', // Primary Bitcoin Orange
+    500: '#F7931A',
     600: '#EA580C',
     700: '#C2410C',
     800: '#9A3412',

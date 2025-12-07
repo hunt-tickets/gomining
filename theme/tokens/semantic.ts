@@ -32,17 +32,17 @@ export const createSemanticTokens = (mode: ThemeMode) => {
         secondary: isDark ? colors.neutral[400] : colors.neutral[600],
         muted: isDark ? colors.neutral[500] : colors.neutral[500],
         inverse: isDark ? colors.neutral[900] : colors.neutral[50],
-        brand: colors.orange[500],
+        brand: colors.purple[500],
       },
 
       // ═══════════════════════════════════════════════════════
       // BRAND
       // ═══════════════════════════════════════════════════════
       brand: {
-        primary: colors.orange[500],
-        primaryHover: colors.orange[400],
-        primaryActive: colors.orange[600],
-        primaryMuted: `${colors.orange[500]}20`,
+        primary: colors.purple[500],
+        primaryHover: colors.purple[400],
+        primaryActive: colors.purple[600],
+        primaryMuted: `${colors.purple[500]}20`,
         accent: colors.gold[500],
         accentMuted: `${colors.gold[500]}20`,
       },
@@ -71,7 +71,7 @@ export const createSemanticTokens = (mode: ThemeMode) => {
       border: {
         default: isDark ? colors.neutral[800] : colors.neutral[200],
         muted: isDark ? colors.neutral[900] : colors.neutral[100],
-        focus: colors.orange[500],
+        focus: colors.purple[500],
         error: colors.red[500],
       },
 
@@ -80,8 +80,8 @@ export const createSemanticTokens = (mode: ThemeMode) => {
       // ═══════════════════════════════════════════════════════
       glass: {
         tint: isDark
-          ? 'rgba(247, 147, 26, 0.08)'
-          : 'rgba(247, 147, 26, 0.05)',
+          ? 'rgba(117, 64, 239, 0.08)'
+          : 'rgba(117, 64, 239, 0.05)',
         border: isDark
           ? 'rgba(255, 255, 255, 0.1)'
           : 'rgba(0, 0, 0, 0.05)',
@@ -107,9 +107,9 @@ export const createSemanticTokens = (mode: ThemeMode) => {
       // Button
       button: {
         primary: {
-          background: colors.orange[500],
-          backgroundHover: colors.orange[400],
-          backgroundActive: colors.orange[600],
+          background: colors.purple[500],
+          backgroundHover: colors.purple[400],
+          backgroundActive: colors.purple[600],
           text: colors.neutral[0],
         },
         secondary: {
@@ -122,7 +122,7 @@ export const createSemanticTokens = (mode: ThemeMode) => {
           backgroundHover: isDark
             ? 'rgba(255, 255, 255, 0.1)'
             : 'rgba(0, 0, 0, 0.05)',
-          text: colors.orange[500],
+          text: colors.purple[500],
         },
         danger: {
           background: colors.red[500],
@@ -136,7 +136,7 @@ export const createSemanticTokens = (mode: ThemeMode) => {
         background: isDark ? colors.neutral[900] : colors.neutral[50],
         backgroundFocus: isDark ? colors.neutral[800] : colors.neutral[0],
         border: isDark ? colors.neutral[700] : colors.neutral[300],
-        borderFocus: colors.orange[500],
+        borderFocus: colors.purple[500],
         text: isDark ? colors.neutral[50] : colors.neutral[900],
         placeholder: colors.neutral[500],
         radius: radii.lg,
@@ -161,8 +161,8 @@ export const createSemanticTokens = (mode: ThemeMode) => {
           text: isDark ? colors.red[400] : colors.red[600],
         },
         brand: {
-          background: `${colors.orange[500]}20`,
-          text: colors.orange[500],
+          background: `${colors.purple[500]}20`,
+          text: colors.purple[500],
         },
       },
 
@@ -170,7 +170,7 @@ export const createSemanticTokens = (mode: ThemeMode) => {
       tabBar: {
         background: isDark ? colors.neutral[950] : colors.neutral[0],
         border: isDark ? colors.neutral[800] : colors.neutral[200],
-        activeColor: colors.orange[500],
+        activeColor: colors.purple[500],
         inactiveColor: colors.neutral[500],
       },
     },
