@@ -226,9 +226,11 @@ interface IncomeTabProps {
   records: DailyIncomeRecord[];
   minerId: string;
   onAddPress: () => void;
+  onEditRecord: (recordId: string) => void;
+  onDeleteRecord: (recordId: string) => void;
 }
 
-function IncomeTab({ records, minerId, onAddPress }: IncomeTabProps) {
+function IncomeTab({ records, minerId, onAddPress, onEditRecord, onDeleteRecord }: IncomeTabProps) {
   const { tokens } = useTheme();
 
   if (records.length === 0) {
@@ -268,12 +270,28 @@ function IncomeTab({ records, minerId, onAddPress }: IncomeTabProps) {
         <View key={record.id}>
           <Card padding="md">
             <View style={styles.recordHeader}>
-              <Text variant="bodySmall" weight="semibold">
-                {new Date(record.date).toLocaleDateString()}
-              </Text>
-              <Badge variant={record.grossIncomeCurrency === 'BTC' ? 'brand' : 'success'}>
-                {record.grossIncomeCurrency}
-              </Badge>
+              <View style={styles.recordTitleRow}>
+                <Text variant="bodySmall" weight="semibold">
+                  {new Date(record.date).toLocaleDateString()}
+                </Text>
+                <Badge variant={record.grossIncomeCurrency === 'BTC' ? 'brand' : 'success'}>
+                  {record.grossIncomeCurrency}
+                </Badge>
+              </View>
+              <View style={styles.recordActions}>
+                <Pressable
+                  style={[styles.recordActionButton, { backgroundColor: tokens.colors.background.tertiary }]}
+                  onPress={() => onEditRecord(record.id)}
+                >
+                  <Icon name="create-outline" size={16} color="brand" />
+                </Pressable>
+                <Pressable
+                  style={[styles.recordActionButton, { backgroundColor: tokens.colors.background.tertiary }]}
+                  onPress={() => onDeleteRecord(record.id)}
+                >
+                  <Icon name="trash-outline" size={16} color="error" />
+                </Pressable>
+              </View>
             </View>
 
             <Spacer size={3} />
@@ -460,6 +478,7 @@ export default function MinerDetailScreen() {
     getIncomeRecordsForMiner,
     getInvestmentsForMiner,
     deleteMiner,
+    deleteIncomeRecord,
   } = useFarmContext();
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -478,6 +497,14 @@ export default function MinerDetailScreen() {
 
   const handleAddIncome = () => {
     router.push(`/farm/add-income?minerId=${id}`);
+  };
+
+  const handleEditIncomeRecord = (recordId: string) => {
+    router.push(`/farm/add-income?minerId=${id}&recordId=${recordId}`);
+  };
+
+  const handleDeleteIncomeRecord = (recordId: string) => {
+    deleteIncomeRecord(recordId);
   };
 
   const handleAddInvestment = () => {
@@ -556,6 +583,8 @@ export default function MinerDetailScreen() {
             records={incomeRecords}
             minerId={id || ''}
             onAddPress={handleAddIncome}
+            onEditRecord={handleEditIncomeRecord}
+            onDeleteRecord={handleDeleteIncomeRecord}
           />
         )}
         {activeTab === 'investments' && (
@@ -660,6 +689,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  recordTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  recordActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  recordActionButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   recordDetails: {
     gap: 8,

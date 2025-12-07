@@ -43,11 +43,14 @@ interface FarmContextValue {
   incomeRecords: DailyIncomeRecord[];
   investments: InvestmentRecord[];
   addIncomeRecord: (input: CreateDailyIncomeInput) => DailyIncomeRecord;
+  updateIncomeRecord: (id: string, input: CreateDailyIncomeInput) => void;
   addInvestment: (input: CreateInvestmentInput) => InvestmentRecord;
   deleteIncomeRecord: (id: string) => void;
   deleteInvestment: (id: string) => void;
   getIncomeRecordsForMiner: (minerId: string) => DailyIncomeRecord[];
   getInvestmentsForMiner: (minerId: string) => InvestmentRecord[];
+  getIncomeRecord: (id: string) => DailyIncomeRecord | undefined;
+  getLastIncomeRecordForMiner: (minerId: string) => DailyIncomeRecord | undefined;
 
   // BTC Data
   setBtcData: (price: number, difficulty: number) => void;
@@ -202,6 +205,31 @@ export function FarmProvider({ children }: { children: React.ReactNode }) {
     setInvestments((prev) => prev.filter((i) => i.id !== id));
   }, []);
 
+  const updateIncomeRecord = useCallback((id: string, input: CreateDailyIncomeInput) => {
+    setIncomeRecords((prev) =>
+      prev.map((record) =>
+        record.id === id
+          ? { ...record, ...input }
+          : record
+      )
+    );
+  }, []);
+
+  const getIncomeRecord = useCallback(
+    (id: string) => incomeRecords.find((r) => r.id === id),
+    [incomeRecords]
+  );
+
+  const getLastIncomeRecordForMiner = useCallback(
+    (minerId: string) => {
+      const minerRecords = incomeRecords
+        .filter((r) => r.minerId === minerId)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      return minerRecords[0];
+    },
+    [incomeRecords]
+  );
+
   const getIncomeRecordsForMiner = useCallback(
     (minerId: string) =>
       incomeRecords
@@ -303,11 +331,14 @@ export function FarmProvider({ children }: { children: React.ReactNode }) {
     incomeRecords,
     investments,
     addIncomeRecord,
+    updateIncomeRecord,
     addInvestment,
     deleteIncomeRecord,
     deleteInvestment,
     getIncomeRecordsForMiner,
     getInvestmentsForMiner,
+    getIncomeRecord,
+    getLastIncomeRecordForMiner,
 
     // BTC Data
     setBtcData,

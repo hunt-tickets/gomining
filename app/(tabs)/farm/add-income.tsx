@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,12 +13,22 @@ import type { Currency } from '@/types';
 // ═══════════════════════════════════════════════════════════════════
 
 export default function AddIncomeScreen() {
-  const { minerId } = useLocalSearchParams<{ minerId: string }>();
+  const { minerId, recordId } = useLocalSearchParams<{ minerId: string; recordId?: string }>();
   const { tokens } = useTheme();
   const insets = useSafeAreaInsets();
-  const { addIncomeRecord, getMiner, btcPrice } = useFarmContext();
+  const {
+    addIncomeRecord,
+    updateIncomeRecord,
+    getMiner,
+    btcPrice,
+    getIncomeRecord,
+    getLastIncomeRecordForMiner,
+  } = useFarmContext();
 
   const miner = getMiner(minerId || '');
+  const existingRecord = recordId ? getIncomeRecord(recordId) : undefined;
+  const lastRecord = minerId ? getLastIncomeRecordForMiner(minerId) : undefined;
+  const isEditing = !!existingRecord;
 
   // Form state
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -46,6 +56,51 @@ export default function AddIncomeScreen() {
 
   // Note
   const [note, setNote] = useState('');
+
+  // Load existing record data when editing
+  useEffect(() => {
+    if (existingRecord) {
+      setDate(existingRecord.date);
+      setGrossIncome(existingRecord.grossIncome.toString());
+      setGrossIncomeCurrency(existingRecord.grossIncomeCurrency);
+      setElectricityCost(existingRecord.electricityCost.toString());
+      setElectricityCurrency(existingRecord.electricityCurrency);
+      setServiceCost(existingRecord.serviceCost.toString());
+      setServiceCurrency(existingRecord.serviceCurrency);
+      setDiscountPercent(existingRecord.discountPercent);
+      if (existingRecord.reinvestment) {
+        setDidReinvest(true);
+        setReinvestAmount(existingRecord.reinvestment.amount.toString());
+        setReinvestCurrency(existingRecord.reinvestment.currency);
+        setReinvestType(existingRecord.reinvestment.type);
+      }
+      setNote(existingRecord.note || '');
+    }
+  }, [existingRecord]);
+
+  // Copy from last entry
+  const copyFromLastEntry = () => {
+    if (!lastRecord) return;
+
+    // Copy everything except date (keep today's date)
+    setGrossIncome(lastRecord.grossIncome.toString());
+    setGrossIncomeCurrency(lastRecord.grossIncomeCurrency);
+    setElectricityCost(lastRecord.electricityCost.toString());
+    setElectricityCurrency(lastRecord.electricityCurrency);
+    setServiceCost(lastRecord.serviceCost.toString());
+    setServiceCurrency(lastRecord.serviceCurrency);
+    setDiscountPercent(lastRecord.discountPercent);
+    if (lastRecord.reinvestment) {
+      setDidReinvest(true);
+      setReinvestAmount(lastRecord.reinvestment.amount.toString());
+      setReinvestCurrency(lastRecord.reinvestment.currency);
+      setReinvestType(lastRecord.reinvestment.type);
+    } else {
+      setDidReinvest(false);
+      setReinvestAmount('');
+    }
+    setNote(lastRecord.note || '');
+  };
 
   // Price estimates for currencies (in production, fetch from API)
   const getDefaultRate = (currency: Currency): number => {
@@ -97,7 +152,7 @@ export default function AddIncomeScreen() {
 
     const netIncomeUSD = grossIncomeUSD - discountedElectricity - discountedService;
 
-    addIncomeRecord({
+    const recordData = {
       minerId,
       date,
       grossIncome: grossIncomeNum,
@@ -119,7 +174,13 @@ export default function AddIncomeScreen() {
           }
         : undefined,
       note: note || undefined,
-    });
+    };
+
+    if (isEditing && recordId) {
+      updateIncomeRecord(recordId, recordData);
+    } else {
+      addIncomeRecord(recordData);
+    }
 
     router.back();
   };
@@ -154,8 +215,23 @@ export default function AddIncomeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text variant="h2">Add Income</Text>
-        <Text variant="body" color="muted">Record daily mining income for {miner.name}</Text>
+        <View style={styles.titleRow}>
+          <View style={styles.titleText}>
+            <Text variant="h2">{isEditing ? 'Edit Income' : 'Add Income'}</Text>
+            <Text variant="body" color="muted">
+              {isEditing ? 'Update income record for' : 'Record daily mining income for'} {miner.name}
+            </Text>
+          </View>
+          {!isEditing && lastRecord && (
+            <Pressable
+              style={[styles.copyButton, { backgroundColor: tokens.colors.brand.primaryMuted }]}
+              onPress={copyFromLastEntry}
+            >
+              <Icon name="copy-outline" size={18} color="brand" />
+              <Text variant="caption" color="brand" weight="semibold">Copy Last</Text>
+            </Pressable>
+          )}
+        </View>
 
         <Spacer size={6} />
 
@@ -348,7 +424,7 @@ export default function AddIncomeScreen() {
           disabled={!grossIncome}
           onPress={handleSave}
         >
-          Save Income Record
+          {isEditing ? 'Update Income Record' : 'Save Income Record'}
         </Button>
       </ScrollView>
     </View>
@@ -374,6 +450,22 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  titleText: {
+    flex: 1,
+  },
+  copyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
   amountRow: {
     flexDirection: 'row',
