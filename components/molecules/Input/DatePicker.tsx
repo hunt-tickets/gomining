@@ -281,7 +281,7 @@ export function DatePicker({
                   {/* Quick select buttons */}
                   <View style={styles.quickSelect}>
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="sm"
                       onPress={() => handleSelect(formatDate(
                         new Date().getFullYear(),
@@ -292,7 +292,7 @@ export function DatePicker({
                       Today
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="sm"
                       onPress={() => {
                         const yesterday = new Date();
