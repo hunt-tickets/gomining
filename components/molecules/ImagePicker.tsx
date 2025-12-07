@@ -73,22 +73,11 @@ export function ImagePicker({
     }
   };
 
-  const handlePress = () => {
-    if (value && !hasError) {
-      // Show options: change or remove
-      Alert.alert(
-        'Image Options',
-        'What would you like to do?',
-        [
-          { text: 'Change Image', onPress: pickImage },
-          { text: 'Remove Image', onPress: () => onChange(undefined), style: 'destructive' },
-          { text: 'Cancel', style: 'cancel' },
-        ]
-      );
-    } else {
-      pickImage();
-    }
+  const handleRemove = () => {
+    onChange(undefined);
   };
+
+  const hasImage = value && !hasError;
 
   return (
     <View style={styles.container}>
@@ -110,31 +99,21 @@ export function ImagePicker({
             borderColor: tokens.colors.border.default,
           },
         ]}
-        onPress={handlePress}
+        onPress={pickImage}
       >
-        {value && !hasError ? (
-          <>
-            <Image
-              source={{ uri: value }}
-              style={[
-                styles.image,
-                {
-                  width: size,
-                  height: size,
-                  borderRadius: size / 8,
-                },
-              ]}
-              onError={() => setHasError(true)}
-            />
-            <View
-              style={[
-                styles.editBadge,
-                { backgroundColor: tokens.colors.background.secondary },
-              ]}
-            >
-              <Icon name="pencil" size={14} color="primary" />
-            </View>
-          </>
+        {hasImage ? (
+          <Image
+            source={{ uri: value }}
+            style={[
+              styles.image,
+              {
+                width: size,
+                height: size,
+                borderRadius: size / 8,
+              },
+            ]}
+            onError={() => setHasError(true)}
+          />
         ) : (
           <View style={styles.placeholder}>
             <Icon name="camera-outline" size={32} color="muted" />
@@ -143,6 +122,35 @@ export function ImagePicker({
           </View>
         )}
       </Pressable>
+
+      {/* Action buttons when image exists */}
+      {hasImage && (
+        <>
+          <Spacer size={2} />
+          <View style={styles.actionButtons}>
+            <Pressable
+              style={[
+                styles.actionButton,
+                { backgroundColor: tokens.colors.background.tertiary },
+              ]}
+              onPress={pickImage}
+            >
+              <Icon name="pencil" size={16} color="brand" />
+              <Text variant="caption" color="brand" weight="semibold">Change</Text>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.actionButton,
+                { backgroundColor: tokens.colors.semantic.errorMuted },
+              ]}
+              onPress={handleRemove}
+            >
+              <Icon name="trash-outline" size={16} color="error" />
+              <Text variant="caption" color="error" weight="semibold">Remove</Text>
+            </Pressable>
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -169,19 +177,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  editBadge: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
 });
