@@ -11,7 +11,6 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Icon, Spacer, Button } from '@/components/atoms';
 
@@ -203,7 +202,6 @@ export function DatePicker({
   maxDate,
 }: DatePickerProps) {
   const { tokens } = useTheme();
-  const insets = useSafeAreaInsets();
   const [isOpen, setIsOpen] = useState(false);
 
   const displayValue = useMemo(() => {
@@ -253,60 +251,68 @@ export function DatePicker({
       {/* Modal */}
       <Modal
         visible={isOpen}
-        animationType="slide"
-        presentationStyle="pageSheet"
+        animationType="fade"
+        transparent
         onRequestClose={() => setIsOpen(false)}
       >
-        <View style={[styles.modal, { backgroundColor: tokens.colors.background.primary }]}>
-          {/* Header */}
-          <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }]}>
-            <Text variant="h3">Select Date</Text>
-            <Pressable onPress={() => setIsOpen(false)}>
-              <Icon name="close" size={24} color="primary" />
-            </Pressable>
-          </View>
-
-          <ScrollView contentContainerStyle={styles.modalContent}>
-            <Calendar
-              selectedDate={value}
-              onSelectDate={handleSelect}
-              minDate={minDate}
-              maxDate={maxDate}
-            />
-
-            <Spacer size={6} />
-
-            {/* Quick select buttons */}
-            <View style={styles.quickSelect}>
-              <Button
-                variant="outline"
-                size="sm"
-                onPress={() => handleSelect(formatDate(
-                  new Date().getFullYear(),
-                  new Date().getMonth(),
-                  new Date().getDate()
-                ))}
-              >
-                Today
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onPress={() => {
-                  const yesterday = new Date();
-                  yesterday.setDate(yesterday.getDate() - 1);
-                  handleSelect(formatDate(
-                    yesterday.getFullYear(),
-                    yesterday.getMonth(),
-                    yesterday.getDate()
-                  ));
-                }}
-              >
-                Yesterday
-              </Button>
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setIsOpen(false)}
+        >
+          <Pressable
+            style={[styles.modalContainer, { backgroundColor: tokens.colors.background.secondary }]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <View style={styles.modalHeader}>
+              <Text variant="h3">Select Date</Text>
+              <Pressable onPress={() => setIsOpen(false)}>
+                <Icon name="close" size={24} color="primary" />
+              </Pressable>
             </View>
-          </ScrollView>
-        </View>
+
+            <ScrollView contentContainerStyle={styles.modalContent}>
+              <Calendar
+                selectedDate={value}
+                onSelectDate={handleSelect}
+                minDate={minDate}
+                maxDate={maxDate}
+              />
+
+              <Spacer size={6} />
+
+              {/* Quick select buttons */}
+              <View style={styles.quickSelect}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onPress={() => handleSelect(formatDate(
+                    new Date().getFullYear(),
+                    new Date().getMonth(),
+                    new Date().getDate()
+                  ))}
+                >
+                  Today
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onPress={() => {
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    handleSelect(formatDate(
+                      yesterday.getFullYear(),
+                      yesterday.getMonth(),
+                      yesterday.getDate()
+                    ));
+                  }}
+                >
+                  Yesterday
+                </Button>
+              </View>
+            </ScrollView>
+          </Pressable>
+        </Pressable>
       </Modal>
     </>
   );
@@ -327,15 +333,27 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
   },
-  modal: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContainer: {
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '90%',
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
   modalContent: {
     padding: 16,
