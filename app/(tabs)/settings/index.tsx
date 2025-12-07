@@ -5,6 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Icon, Spacer } from '@/components/atoms';
 import { Card } from '@/components/molecules';
+import { useLanguage } from '@/contexts';
+import { useTranslation } from 'react-i18next';
+import { SUPPORTED_LANGUAGES } from '@/i18n';
 
 // ═══════════════════════════════════════════════════════════════════
 // SETTINGS ITEM COMPONENT
@@ -117,16 +120,23 @@ function ProfileCard() {
 export default function SettingsScreen() {
   const { tokens, themeSetting } = useTheme();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const getThemeLabel = () => {
     switch (themeSetting) {
       case 'dark':
-        return 'Dark';
+        return t('settings.themeDark');
       case 'light':
-        return 'Light';
+        return t('settings.themeLight');
       case 'system':
-        return 'System';
+        return t('settings.themeSystem');
     }
+  };
+
+  const getLanguageLabel = () => {
+    const langInfo = SUPPORTED_LANGUAGES.find(l => l.code === language);
+    return langInfo?.nativeName || language;
   };
 
   return (
@@ -140,30 +150,36 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <Text variant="h2">Settings</Text>
+        <Text variant="h2">{t('settings.title')}</Text>
 
         <Spacer size={6} />
 
         {/* Profile */}
-        <Text variant="label" color="muted">PROFILE</Text>
+        <Text variant="label" color="muted">{t('settings.profile')}</Text>
         <Spacer size={3} />
         <ProfileCard />
 
         <Spacer size={6} />
 
         {/* Appearance */}
-        <Text variant="label" color="muted">APPEARANCE</Text>
+        <Text variant="label" color="muted">{t('settings.appearance')}</Text>
         <Spacer size={3} />
         <Card padding="none">
           <SettingsItem
             icon="contrast-outline"
-            title="Theme"
+            title={t('settings.theme')}
             value={getThemeLabel()}
             onPress={() => router.push('/settings/appearance')}
           />
           <SettingsItem
+            icon="language-outline"
+            title={t('settings.language')}
+            value={getLanguageLabel()}
+            onPress={() => router.push('/settings/language')}
+          />
+          <SettingsItem
             icon="speedometer-outline"
-            title="Reduce Animations"
+            title={t('settings.reduceAnimations')}
             value="Off"
             onPress={() => {}}
           />
@@ -172,24 +188,24 @@ export default function SettingsScreen() {
         <Spacer size={6} />
 
         {/* Mining Defaults */}
-        <Text variant="label" color="muted">MINING DEFAULTS</Text>
+        <Text variant="label" color="muted">{t('settings.miningDefaults')}</Text>
         <Spacer size={3} />
         <Card padding="none">
           <SettingsItem
             icon="flash-outline"
-            title="Electricity Cost"
+            title={t('settings.electricityCost')}
             value="$0.06/kWh"
             onPress={() => {}}
           />
           <SettingsItem
             icon="hardware-chip-outline"
-            title="Default Efficiency"
+            title={t('settings.defaultEfficiency')}
             value="35 W/TH"
             onPress={() => {}}
           />
           <SettingsItem
             icon="cash-outline"
-            title="Display Currency"
+            title={t('settings.displayCurrency')}
             value="USD"
             onPress={() => {}}
           />
@@ -198,25 +214,25 @@ export default function SettingsScreen() {
         <Spacer size={6} />
 
         {/* Data & Privacy */}
-        <Text variant="label" color="muted">DATA & PRIVACY</Text>
+        <Text variant="label" color="muted">{t('settings.dataPrivacy')}</Text>
         <Spacer size={3} />
         <Card padding="none">
           <SettingsItem
             icon="download-outline"
-            title="Export My Data"
-            subtitle="Download all your data as JSON"
+            title={t('settings.exportData')}
+            subtitle={t('settings.exportDescription')}
             onPress={() => {}}
           />
           <SettingsItem
             icon="cloud-upload-outline"
-            title="Import Data"
-            subtitle="Restore from a backup"
+            title={t('settings.importData')}
+            subtitle={t('settings.importDescription')}
             onPress={() => {}}
           />
           <SettingsItem
             icon="trash-outline"
-            title="Clear All Data"
-            subtitle="This action cannot be undone"
+            title={t('settings.clearData')}
+            subtitle={t('settings.clearDescription')}
             onPress={() => {}}
             danger
           />
@@ -225,33 +241,33 @@ export default function SettingsScreen() {
         <Spacer size={6} />
 
         {/* About */}
-        <Text variant="label" color="muted">ABOUT</Text>
+        <Text variant="label" color="muted">{t('settings.about')}</Text>
         <Spacer size={3} />
         <Card padding="none">
           <SettingsItem
             icon="information-circle-outline"
-            title="Version"
+            title={t('settings.version')}
             value="1.0.0"
             onPress={() => router.push('/settings/about')}
           />
           <SettingsItem
             icon="star-outline"
-            title="Rate GoMining Calculator"
+            title={t('settings.rateApp')}
             onPress={() => {}}
           />
           <SettingsItem
             icon="share-outline"
-            title="Share with Friends"
+            title={t('settings.share')}
             onPress={() => {}}
           />
           <SettingsItem
             icon="document-text-outline"
-            title="Privacy Policy"
+            title={t('settings.privacy')}
             onPress={() => {}}
           />
           <SettingsItem
             icon="shield-outline"
-            title="Terms of Service"
+            title={t('settings.terms')}
             onPress={() => {}}
           />
         </Card>
@@ -259,7 +275,7 @@ export default function SettingsScreen() {
         <Spacer size={8} />
 
         <Text variant="caption" color="muted" align="center">
-          Made with ₿ by GoMining Calculator
+          {t('settings.madeWith')}
         </Text>
       </ScrollView>
     </View>

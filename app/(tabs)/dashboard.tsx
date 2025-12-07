@@ -1,11 +1,55 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator, Pressable, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
-import { Text, Icon, Spacer, Badge } from '@/components/atoms';
+import { Text, Icon, Spacer, Badge, Button } from '@/components/atoms';
 import { Card, GlassCard, MetricDisplay, Alert } from '@/components/molecules';
 import { useBitcoinData } from '@/hooks/useBitcoinData';
 import { useFarmContext } from '@/contexts';
+
+// ═══════════════════════════════════════════════════════════════════
+// REFERRAL BANNER
+// ═══════════════════════════════════════════════════════════════════
+
+const REFERRAL_LINK = 'https://gomining.com/?ref=D8OIU8L';
+const REFERRAL_CODE = 'D8OIU8L';
+
+function ReferralBanner() {
+  const { tokens } = useTheme();
+
+  const handlePress = () => {
+    Linking.openURL(REFERRAL_LINK);
+  };
+
+  return (
+    <Pressable onPress={handlePress}>
+      <Card
+        padding="lg"
+        style={{
+          borderWidth: 1,
+          borderColor: tokens.colors.brand.primary,
+          backgroundColor: tokens.colors.brand.primaryMuted,
+        }}
+      >
+        <View style={styles.referralContent}>
+          <View style={styles.referralIcon}>
+            <Icon name="gift" size={32} color="brand" />
+          </View>
+          <View style={styles.referralText}>
+            <Text variant="body" weight="bold">Start Mining with GoMining</Text>
+            <Text variant="caption" color="muted">
+              Get 5% extra TH/s on your first miner!
+            </Text>
+          </View>
+          <View style={styles.referralCode}>
+            <Text variant="caption" color="muted">Code</Text>
+            <Text variant="body" weight="bold" color="brand">{REFERRAL_CODE}</Text>
+          </View>
+        </View>
+      </Card>
+    </Pressable>
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // EMPTY STATE COMPONENT
@@ -286,6 +330,19 @@ export default function DashboardScreen() {
 
             {/* Scenario Comparison */}
             <ScenarioComparison dailyProfit={totalDailyProfitUSD} />
+
+            <Spacer size={4} />
+
+            {/* Referral Banner */}
+            <ReferralBanner />
+          </>
+        )}
+
+        {/* Show referral banner even when no miners */}
+        {!hasMiners && (
+          <>
+            <Spacer size={4} />
+            <ReferralBanner />
           </>
         )}
       </ScrollView>
@@ -393,5 +450,29 @@ const styles = StyleSheet.create({
     borderRadius: 48,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  referralContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  referralIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  referralText: {
+    flex: 1,
+    gap: 2,
+  },
+  referralCode: {
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: 8,
   },
 });

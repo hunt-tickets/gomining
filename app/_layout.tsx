@@ -2,7 +2,10 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider, useTheme } from '@/theme';
-import { FarmProvider } from '@/contexts';
+import { FarmProvider, LanguageProvider } from '@/contexts';
+
+// Initialize i18n (must be imported before any component that uses translations)
+import '@/i18n';
 
 // ═══════════════════════════════════════════════════════════════════
 // ROOT LAYOUT
@@ -47,9 +50,11 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider defaultTheme="dark">
-        <FarmProvider>
-          <RootLayoutNav />
-        </FarmProvider>
+        <LanguageProvider>
+          <FarmProvider>
+            <RootLayoutNav />
+          </FarmProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

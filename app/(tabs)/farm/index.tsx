@@ -256,7 +256,11 @@ export default function FarmScreen() {
                   Compare reinvestment strategies and project your earnings
                 </Text>
                 <Spacer size={4} />
-                <Button variant="primary" fullWidth>
+                <Button
+                  variant="primary"
+                  fullWidth
+                  onPress={() => router.push('/modals/simulation-result')}
+                >
                   Run Simulation
                 </Button>
               </View>

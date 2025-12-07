@@ -33,12 +33,12 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="farm"
+        name="dashboard"
         options={{
-          title: 'My Farm',
+          title: 'Dashboard',
           tabBarIcon: ({ focused, color }) => (
             <Icon
-              name={focused ? IconPresets.farmFilled : IconPresets.farm}
+              name={focused ? IconPresets.dashboardFilled : IconPresets.dashboard}
               size={24}
               color={color}
             />
@@ -46,12 +46,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="dashboard"
+        name="farm"
         options={{
-          title: 'Dashboard',
+          title: 'My Farm',
           tabBarIcon: ({ focused, color }) => (
             <Icon
-              name={focused ? IconPresets.dashboardFilled : IconPresets.dashboard}
+              name={focused ? IconPresets.farmFilled : IconPresets.farm}
               size={24}
               color={color}
             />
