@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { storage, STORAGE_KEYS, getJSON, setJSON } from '@/services/storage';
-import { calculateMiningProfitability, calculateTotalDiscount } from '@/utils/calculations';
+import { calculateMiningProfitability } from '@/utils/calculations';
 import type { Miner, CreateMinerInput, UpdateMinerInput, MinerWithStats } from '@/types';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -73,26 +73,28 @@ export function useFarm(btcPrice: number = 0, difficulty: number = 0) {
         ...miner,
         dailyProfitBTC: 0,
         dailyProfitUSD: 0,
-        totalDiscountPercent: calculateTotalDiscount(miner.discounts),
+        totalInvestedUSD: 0,
+        totalEarnedUSD: 0,
+        roi: 0,
       }));
     }
 
     return miners.map((miner) => {
-      const result = calculateMiningProfitability(
-        {
-          hashrate: miner.hashrate,
-          efficiency: miner.efficiency,
-          difficulty,
-          btcPrice,
-        },
-        miner.discounts
-      );
+      const result = calculateMiningProfitability({
+        hashrate: miner.hashrate,
+        efficiency: miner.efficiency,
+        difficulty,
+        btcPrice,
+        discountPercent: miner.discountPercent,
+      });
 
       return {
         ...miner,
         dailyProfitBTC: result.netRewardBTC,
         dailyProfitUSD: result.netRewardUSD,
-        totalDiscountPercent: result.discountPercent,
+        totalInvestedUSD: 0,
+        totalEarnedUSD: 0,
+        roi: 0,
       };
     });
   }, [miners, btcPrice, difficulty]);

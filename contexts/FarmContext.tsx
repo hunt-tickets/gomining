@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { STORAGE_KEYS, getJSON, setJSON } from '@/services/storage';
-import { calculateMiningProfitability, calculateTotalDiscount } from '@/utils/calculations';
+import { calculateMiningProfitability } from '@/utils/calculations';
 import type {
   Miner,
   CreateMinerInput,
@@ -229,15 +229,13 @@ export function FarmProvider({ children }: { children: React.ReactNode }) {
       let dailyProfitUSD = 0;
 
       if (btcPrice > 0 && difficulty > 0) {
-        const result = calculateMiningProfitability(
-          {
-            hashrate: miner.hashrate,
-            efficiency: miner.efficiency,
-            difficulty,
-            btcPrice,
-          },
-          miner.discounts
-        );
+        const result = calculateMiningProfitability({
+          hashrate: miner.hashrate,
+          efficiency: miner.efficiency,
+          difficulty,
+          btcPrice,
+          discountPercent: miner.discountPercent,
+        });
         dailyProfitBTC = result.netRewardBTC;
         dailyProfitUSD = result.netRewardUSD;
       }
@@ -259,7 +257,6 @@ export function FarmProvider({ children }: { children: React.ReactNode }) {
         ...miner,
         dailyProfitBTC,
         dailyProfitUSD,
-        totalDiscountPercent: calculateTotalDiscount(miner.discounts),
         totalInvestedUSD,
         totalEarnedUSD,
         roi,

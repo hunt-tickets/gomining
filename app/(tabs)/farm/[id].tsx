@@ -155,8 +155,8 @@ function OverviewTab({ miner }: OverviewTabProps) {
           </View>
           <View style={styles.configItem}>
             <Icon name="pricetag" size={20} color="brand" />
-            <Text variant="bodySmall" color="muted">Total Discount</Text>
-            <Text variant="body" weight="semibold">{miner.totalDiscountPercent.toFixed(1)}%</Text>
+            <Text variant="bodySmall" color="muted">Discount</Text>
+            <Text variant="body" weight="semibold">{miner.discountPercent.toFixed(1)}%</Text>
           </View>
         </View>
       </Card>
@@ -461,14 +461,24 @@ export default function MinerDetailScreen() {
         >
           Back
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          leftIcon={<Icon name="trash-outline" size={20} color="error" />}
-          onPress={handleDelete}
-        >
-          Delete
-        </Button>
+        <View style={styles.headerActions}>
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<Icon name="create-outline" size={20} color="brand" />}
+            onPress={() => router.push(`/farm/edit?minerId=${id}`)}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<Icon name="trash-outline" size={20} color="error" />}
+            onPress={handleDelete}
+          >
+            Delete
+          </Button>
+        </View>
       </View>
 
       {/* Title */}
@@ -530,6 +540,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 8,
     paddingBottom: 8,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 4,
   },
   titleContainer: {
     paddingHorizontal: 16,

@@ -25,6 +25,7 @@ export interface MiningCalculationParams {
   difficulty: number; // Network difficulty
   btcPrice: number; // USD
   electricityCost?: number; // $/kWh
+  discountPercent?: number; // Direct discount percentage (0-29)
 }
 
 export interface DiscountParams {
@@ -102,16 +103,14 @@ export function calculateTotalDiscount(params: DiscountParams): number {
 /**
  * Calculate complete mining profitability
  */
-export function calculateMiningProfitability(
-  params: MiningCalculationParams,
-  discounts?: DiscountParams
-): MiningResult {
+export function calculateMiningProfitability(params: MiningCalculationParams): MiningResult {
   const {
     hashrate,
     efficiency,
     difficulty,
     btcPrice,
     electricityCost = MINING_CONSTANTS.DEFAULT_ELECTRICITY_COST,
+    discountPercent = 0,
   } = params;
 
   // Calculate gross reward
@@ -135,10 +134,8 @@ export function calculateMiningProfitability(
   let totalCostBTC = electricityCostBTC + serviceCostBTC;
   let totalCostUSD = electricityCostUSD + serviceCostUSD;
 
-  // Apply discounts if provided
-  let discountPercent = 0;
-  if (discounts) {
-    discountPercent = calculateTotalDiscount(discounts);
+  // Apply discount if provided
+  if (discountPercent > 0) {
     const discountMultiplier = 1 - discountPercent / 100;
     totalCostBTC *= discountMultiplier;
     totalCostUSD *= discountMultiplier;

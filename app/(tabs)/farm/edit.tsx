@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Button, Icon, Spacer } from '@/components/atoms';
@@ -8,24 +8,36 @@ import { Card, TextInput, SliderInput } from '@/components/molecules';
 import { useFarmContext } from '@/contexts';
 
 // ═══════════════════════════════════════════════════════════════════
-// ADD MINER SCREEN
+// EDIT MINER SCREEN
 // ═══════════════════════════════════════════════════════════════════
 
-export default function AddMinerScreen() {
+export default function EditMinerScreen() {
+  const { minerId } = useLocalSearchParams<{ minerId: string }>();
   const { tokens } = useTheme();
   const insets = useSafeAreaInsets();
-  const { addMiner } = useFarmContext();
+  const { getMiner, updateMiner } = useFarmContext();
+
+  const miner = getMiner(minerId || '');
 
   const [name, setName] = useState('');
   const [hashrate, setHashrate] = useState(100);
   const [efficiency, setEfficiency] = useState(35);
   const [discountPercent, setDiscountPercent] = useState(0);
 
-  const handleSave = () => {
-    if (!name.trim()) return;
+  // Load miner data on mount
+  useEffect(() => {
+    if (miner) {
+      setName(miner.name);
+      setHashrate(miner.hashrate);
+      setEfficiency(miner.efficiency);
+      setDiscountPercent(miner.discountPercent);
+    }
+  }, [miner]);
 
-    // Save miner to storage via hook
-    addMiner({
+  const handleSave = () => {
+    if (!name.trim() || !minerId) return;
+
+    updateMiner(minerId, {
       name: name.trim(),
       hashrate,
       efficiency,
@@ -34,6 +46,26 @@ export default function AddMinerScreen() {
 
     router.back();
   };
+
+  if (!miner) {
+    return (
+      <View style={[styles.container, { backgroundColor: tokens.colors.background.primary }]}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<Icon name="chevron-back" size={20} color="primary" />}
+            onPress={() => router.back()}
+          >
+            Back
+          </Button>
+        </View>
+        <View style={styles.notFound}>
+          <Text variant="h3">Miner not found</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: tokens.colors.background.primary }]}>
@@ -57,8 +89,8 @@ export default function AddMinerScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text variant="h2">Add Miner</Text>
-        <Text variant="body" color="muted">Configure your new virtual miner</Text>
+        <Text variant="h2">Edit Miner</Text>
+        <Text variant="body" color="muted">Update {miner.name} configuration</Text>
 
         <Spacer size={6} />
 
@@ -121,8 +153,7 @@ export default function AddMinerScreen() {
           <View style={styles.infoRow}>
             <Icon name="information-circle-outline" size={20} color="muted" />
             <Text variant="bodySmall" color="muted" style={{ flex: 1 }}>
-              Enter your total discount percentage. This reduces your electricity and service fees.
-              Most platforms offer discounts up to 29% through tokens, VIP levels, or other rewards.
+              Update your discount percentage when your token coverage, VIP level, or other bonuses change.
             </Text>
           </View>
         </Card>
@@ -135,7 +166,7 @@ export default function AddMinerScreen() {
           disabled={!name.trim()}
           onPress={handleSave}
         >
-          Create Miner
+          Save Changes
         </Button>
       </ScrollView>
     </View>
@@ -157,6 +188,11 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
+  },
+  notFound: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoRow: {
     flexDirection: 'row',

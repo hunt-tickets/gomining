@@ -110,10 +110,10 @@ function MinerCard({ miner, onPress }: MinerCardProps) {
         </View>
       </View>
 
-      {miner.totalDiscountPercent > 0 && (
+      {miner.discountPercent > 0 && (
         <>
           <Spacer size={3} />
-          <Badge variant="success">-{miner.totalDiscountPercent.toFixed(0)}% Discounts</Badge>
+          <Badge variant="success">-{miner.discountPercent.toFixed(0)}% Discount</Badge>
         </>
       )}
     </GlassCard>

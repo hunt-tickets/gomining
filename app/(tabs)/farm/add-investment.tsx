@@ -4,9 +4,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Button, Icon, Spacer } from '@/components/atoms';
-import { Card, TextInput, SliderInput } from '@/components/molecules';
+import { Card, TextInput, SliderInput, CurrencyPicker } from '@/components/molecules';
 import { useFarmContext } from '@/contexts';
-import type { InvestmentType } from '@/types';
+import type { InvestmentType, Currency } from '@/types';
 
 // ═══════════════════════════════════════════════════════════════════
 // INVESTMENT TYPE SELECTOR
@@ -71,14 +71,17 @@ export default function AddInvestmentScreen() {
   const { minerId } = useLocalSearchParams<{ minerId: string }>();
   const { tokens } = useTheme();
   const insets = useSafeAreaInsets();
-  const { addInvestment, getMiner, updateMiner } = useFarmContext();
+  const { addInvestment, getMiner, updateMiner, btcPrice } = useFarmContext();
 
   const miner = getMiner(minerId || '');
 
   // Form state
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [type, setType] = useState<InvestmentType>('initial');
-  const [amountUSD, setAmountUSD] = useState('');
+  const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState<Currency>('USD');
+  const [useManualRate, setUseManualRate] = useState(false);
+  const [manualRate, setManualRate] = useState('');
   const [note, setNote] = useState('');
 
   // Details based on type
@@ -88,9 +91,44 @@ export default function AddInvestmentScreen() {
   const [efficiencyAfter, setEfficiencyAfter] = useState(miner?.efficiency || 35);
   const [tokenDaysBought, setTokenDaysBought] = useState(0);
 
-  const handleSave = () => {
-    if (!minerId || !amountUSD) return;
+  // Price estimates for currencies (in production, fetch from API)
+  const getDefaultRate = (curr: Currency): number => {
+    const rates: Partial<Record<Currency, number>> = {
+      BTC: btcPrice || 100000,
+      ETH: 3500,
+      USDT: 1,
+      USDC: 1,
+      GMT: 0.5,
+      SOL: 200,
+      BNB: 600,
+      XRP: 2,
+      ADA: 1,
+      DOGE: 0.4,
+      LTC: 100,
+      BCH: 450,
+      USD: 1,
+      EUR: 1.08,
+      GBP: 1.27,
+      MXN: 0.058,
+      BRL: 0.20,
+      ARS: 0.001,
+      COP: 0.00024,
+    };
+    return rates[curr] || 1;
+  };
 
+  // Calculate USD value
+  const calculateUSD = (): number => {
+    const num = parseFloat(amount) || 0;
+    const rate = useManualRate && manualRate ? parseFloat(manualRate) : getDefaultRate(currency);
+    return num * rate;
+  };
+
+  const handleSave = () => {
+    if (!minerId || !amount) return;
+
+    const amountNum = parseFloat(amount) || 0;
+    const amountUSD = calculateUSD();
     const details: any = {};
 
     if (type === 'hashrate') {
@@ -109,22 +147,17 @@ export default function AddInvestmentScreen() {
       }
     } else if (type === 'tokens') {
       details.tokenDaysBought = tokenDaysBought;
-      // Update miner token days
-      if (miner) {
-        updateMiner(minerId, {
-          discounts: {
-            ...miner.discounts,
-            tokenDays: miner.discounts.tokenDays + tokenDaysBought,
-          },
-        });
-      }
+      // Note: discount percentage should be updated manually by user
     }
 
     addInvestment({
       minerId,
       date,
       type,
-      amountUSD: parseFloat(amountUSD) || 0,
+      amount: amountNum,
+      currency,
+      amountUSD,
+      manualRate: useManualRate && manualRate ? parseFloat(manualRate) : undefined,
       details: Object.keys(details).length > 0 ? details : undefined,
       note: note || undefined,
     });
@@ -191,14 +224,61 @@ export default function AddInvestmentScreen() {
 
         {/* Amount */}
         <Card padding="lg">
-          <TextInput
-            value={amountUSD}
-            onChangeText={setAmountUSD}
-            label="Amount (USD)"
-            placeholder="0.00"
-            keyboardType="decimal-pad"
-            leftIcon="cash-outline"
-          />
+          <Text variant="label" color="muted">INVESTMENT AMOUNT</Text>
+          <Spacer size={4} />
+
+          <View style={styles.amountRow}>
+            <View style={styles.amountInput}>
+              <TextInput
+                value={amount}
+                onChangeText={setAmount}
+                label="Amount"
+                placeholder="0.00"
+                keyboardType="decimal-pad"
+              />
+            </View>
+            <CurrencyPicker
+              value={currency}
+              onChange={setCurrency}
+              label="Currency"
+            />
+          </View>
+
+          <Spacer size={3} />
+
+          <Pressable
+            style={styles.toggleRow}
+            onPress={() => setUseManualRate(!useManualRate)}
+          >
+            <Text variant="caption" color="muted">Use manual price</Text>
+            <Icon
+              name={useManualRate ? 'checkbox' : 'square-outline'}
+              size={20}
+              color={useManualRate ? 'brand' : 'muted'}
+            />
+          </Pressable>
+
+          {useManualRate && (
+            <>
+              <Spacer size={2} />
+              <TextInput
+                value={manualRate}
+                onChangeText={setManualRate}
+                label="USD Rate"
+                placeholder={`1 ${currency} = ? USD`}
+                keyboardType="decimal-pad"
+              />
+            </>
+          )}
+
+          {amount && (
+            <>
+              <Spacer size={3} />
+              <Text variant="caption" color="muted">
+                Estimated USD value: ${calculateUSD().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Text>
+            </>
+          )}
         </Card>
 
         <Spacer size={4} />
@@ -280,7 +360,7 @@ export default function AddInvestmentScreen() {
 
         {type === 'tokens' && (
           <Card padding="lg">
-            <Text variant="label" color="muted">TOKEN COVERAGE</Text>
+            <Text variant="label" color="muted">TOKEN PURCHASE</Text>
             <Spacer size={4} />
 
             <SliderInput
@@ -295,10 +375,7 @@ export default function AddInvestmentScreen() {
 
             <Spacer size={4} />
             <Text variant="caption" color="muted">
-              Current coverage: {miner.discounts.tokenDays} days
-            </Text>
-            <Text variant="caption" color="brand">
-              After purchase: {miner.discounts.tokenDays + tokenDaysBought} days
+              Remember to update your miner's discount percentage after purchasing tokens.
             </Text>
           </Card>
         )}
@@ -321,7 +398,7 @@ export default function AddInvestmentScreen() {
         <Button
           variant="primary"
           fullWidth
-          disabled={!amountUSD}
+          disabled={!amount}
           onPress={handleSave}
         >
           Save Investment
@@ -350,6 +427,19 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
+  },
+  amountRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'flex-end',
+  },
+  amountInput: {
+    flex: 1,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   typeSelector: {
     gap: 12,

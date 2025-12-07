@@ -2,28 +2,18 @@
  * Farm & Miner Types
  */
 
-// ═══════════════════════════════════════════════════════════════════
-// CURRENCY & PAYMENT TYPES
-// ═══════════════════════════════════════════════════════════════════
-
-export type PaymentCurrency = 'BTC' | 'GMT';
+import type { Currency } from './currency';
 
 // ═══════════════════════════════════════════════════════════════════
 // MINER TYPES
 // ═══════════════════════════════════════════════════════════════════
-
-export interface MinerDiscounts {
-  tokenDays: number; // Days of GOMINING token coverage (0-400)
-  vipLevel: number; // VIP level (0-20)
-  dailyClicks: number; // Consecutive daily clicks (0-10)
-}
 
 export interface Miner {
   id: string;
   name: string;
   hashrate: number; // TH/s
   efficiency: number; // W/TH
-  discounts: MinerDiscounts;
+  discountPercent: number; // Single discount field (0-29%)
   createdAt: string;
   updatedAt: string;
 }
@@ -31,7 +21,6 @@ export interface Miner {
 export interface MinerWithStats extends Miner {
   dailyProfitBTC: number;
   dailyProfitUSD: number;
-  totalDiscountPercent: number;
   // Calculated from transactions
   totalInvestedUSD: number;
   totalEarnedUSD: number;
@@ -52,31 +41,29 @@ export interface DailyIncomeRecord {
 
   // Gross income received
   grossIncome: number;
-  grossIncomeCurrency: PaymentCurrency;
+  grossIncomeCurrency: Currency;
   grossIncomeUSD: number; // Value at time of receipt
 
   // Electricity cost paid
   electricityCost: number;
-  electricityCurrency: PaymentCurrency;
+  electricityCurrency: Currency;
   electricityCostUSD: number;
 
   // Service fee paid
   serviceCost: number;
-  serviceCurrency: PaymentCurrency;
+  serviceCurrency: Currency;
   serviceCostUSD: number;
 
   // Discount applied that day
   discountPercent: number;
 
   // Net income (calculated: gross - electricity - service)
-  netIncome: number;
-  netIncomeCurrency: PaymentCurrency;
   netIncomeUSD: number;
 
   // What was done with the earnings (optional)
   reinvestment?: {
     amount: number;
-    currency: PaymentCurrency;
+    currency: Currency;
     type: 'hashrate' | 'tokens' | 'efficiency';
   };
 
@@ -93,7 +80,8 @@ export type InvestmentType =
   | 'initial'     // Initial purchase
   | 'hashrate'    // Buying more TH/s
   | 'efficiency'  // Upgrading efficiency (W/TH)
-  | 'tokens';     // Buying GMT tokens for discounts
+  | 'tokens'      // Buying tokens for discounts
+  | 'other';      // Other investments
 
 export interface InvestmentRecord {
   id: string;
@@ -101,7 +89,14 @@ export interface InvestmentRecord {
   date: string; // ISO date string
 
   type: InvestmentType;
-  amountUSD: number;
+
+  // Amount paid
+  amount: number;
+  currency: Currency;
+  amountUSD: number; // Converted to USD
+
+  // Optional: manual USD rate used
+  manualRate?: number;
 
   // What changed (optional details)
   details?: {
@@ -145,3 +140,6 @@ export type UpdateMinerInput = Partial<Omit<Miner, 'id' | 'createdAt' | 'updated
 
 export type CreateDailyIncomeInput = Omit<DailyIncomeRecord, 'id' | 'createdAt'>;
 export type CreateInvestmentInput = Omit<InvestmentRecord, 'id' | 'createdAt'>;
+
+// Re-export Currency for convenience
+export type { Currency } from './currency';

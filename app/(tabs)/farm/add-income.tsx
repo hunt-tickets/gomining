@@ -4,63 +4,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Button, Icon, Spacer } from '@/components/atoms';
-import { Card, TextInput, SliderInput } from '@/components/molecules';
+import { Card, TextInput, SliderInput, CurrencyPicker } from '@/components/molecules';
 import { useFarmContext } from '@/contexts';
-import type { PaymentCurrency } from '@/types';
-
-// ═══════════════════════════════════════════════════════════════════
-// CURRENCY SELECTOR
-// ═══════════════════════════════════════════════════════════════════
-
-interface CurrencySelectorProps {
-  value: PaymentCurrency;
-  onChange: (currency: PaymentCurrency) => void;
-  label: string;
-}
-
-function CurrencySelector({ value, onChange, label }: CurrencySelectorProps) {
-  const { tokens } = useTheme();
-
-  return (
-    <View style={styles.currencySelector}>
-      <Text variant="caption" color="muted">{label}</Text>
-      <View style={styles.currencyButtons}>
-        <Pressable
-          style={[
-            styles.currencyButton,
-            value === 'BTC' && { backgroundColor: tokens.colors.brand.primary },
-            { borderColor: tokens.colors.border.default },
-          ]}
-          onPress={() => onChange('BTC')}
-        >
-          <Text
-            variant="bodySmall"
-            weight="semibold"
-            color={value === 'BTC' ? 'inverse' : 'muted'}
-          >
-            BTC
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[
-            styles.currencyButton,
-            value === 'GMT' && { backgroundColor: tokens.colors.brand.primary },
-            { borderColor: tokens.colors.border.default },
-          ]}
-          onPress={() => onChange('GMT')}
-        >
-          <Text
-            variant="bodySmall"
-            weight="semibold"
-            color={value === 'GMT' ? 'inverse' : 'muted'}
-          >
-            GMT
-          </Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
+import type { Currency } from '@/types';
 
 // ═══════════════════════════════════════════════════════════════════
 // MAIN SCREEN
@@ -79,15 +25,21 @@ export default function AddIncomeScreen() {
 
   // Gross income
   const [grossIncome, setGrossIncome] = useState('');
-  const [grossIncomeCurrency, setGrossIncomeCurrency] = useState<PaymentCurrency>('BTC');
+  const [grossIncomeCurrency, setGrossIncomeCurrency] = useState<Currency>('BTC');
+  const [useManualGrossRate, setUseManualGrossRate] = useState(false);
+  const [manualGrossRate, setManualGrossRate] = useState('');
 
   // Electricity
   const [electricityCost, setElectricityCost] = useState('');
-  const [electricityCurrency, setElectricityCurrency] = useState<PaymentCurrency>('BTC');
+  const [electricityCurrency, setElectricityCurrency] = useState<Currency>('BTC');
+  const [useManualElectricityRate, setUseManualElectricityRate] = useState(false);
+  const [manualElectricityRate, setManualElectricityRate] = useState('');
 
   // Service
   const [serviceCost, setServiceCost] = useState('');
-  const [serviceCurrency, setServiceCurrency] = useState<PaymentCurrency>('BTC');
+  const [serviceCurrency, setServiceCurrency] = useState<Currency>('BTC');
+  const [useManualServiceRate, setUseManualServiceRate] = useState(false);
+  const [manualServiceRate, setManualServiceRate] = useState('');
 
   // Discount
   const [discountPercent, setDiscountPercent] = useState(0);
@@ -95,20 +47,43 @@ export default function AddIncomeScreen() {
   // Reinvestment
   const [didReinvest, setDidReinvest] = useState(false);
   const [reinvestAmount, setReinvestAmount] = useState('');
-  const [reinvestCurrency, setReinvestCurrency] = useState<PaymentCurrency>('BTC');
+  const [reinvestCurrency, setReinvestCurrency] = useState<Currency>('BTC');
   const [reinvestType, setReinvestType] = useState<'hashrate' | 'tokens' | 'efficiency'>('hashrate');
 
   // Note
   const [note, setNote] = useState('');
 
-  // Calculate USD values (simplified - in production you'd use historical prices)
-  const calculateUSD = (amount: string, currency: PaymentCurrency): number => {
+  // Price estimates for currencies (in production, fetch from API)
+  const getDefaultRate = (currency: Currency): number => {
+    const rates: Partial<Record<Currency, number>> = {
+      BTC: btcPrice || 100000,
+      ETH: 3500,
+      USDT: 1,
+      USDC: 1,
+      GMT: 0.5,
+      SOL: 200,
+      BNB: 600,
+      XRP: 2,
+      ADA: 1,
+      DOGE: 0.4,
+      LTC: 100,
+      BCH: 450,
+      USD: 1,
+      EUR: 1.08,
+      GBP: 1.27,
+      MXN: 0.058,
+      BRL: 0.20,
+      ARS: 0.001,
+      COP: 0.00024,
+    };
+    return rates[currency] || 1;
+  };
+
+  // Calculate USD values with manual rate option
+  const calculateUSD = (amount: string, currency: Currency, manualRate?: string): number => {
     const num = parseFloat(amount) || 0;
-    if (currency === 'BTC') {
-      return num * (btcPrice || 100000); // Use current BTC price or estimate
-    }
-    // GMT token price estimate (you'd want to fetch this)
-    return num * 0.5; // Approximate GMT price
+    const rate = manualRate ? parseFloat(manualRate) : getDefaultRate(currency);
+    return num * rate;
   };
 
   const handleSave = () => {
@@ -118,9 +93,21 @@ export default function AddIncomeScreen() {
     const electricityCostNum = parseFloat(electricityCost) || 0;
     const serviceCostNum = parseFloat(serviceCost) || 0;
 
-    const grossIncomeUSD = calculateUSD(grossIncome, grossIncomeCurrency);
-    const electricityCostUSD = calculateUSD(electricityCost, electricityCurrency);
-    const serviceCostUSD = calculateUSD(serviceCost, serviceCurrency);
+    const grossIncomeUSD = calculateUSD(
+      grossIncome,
+      grossIncomeCurrency,
+      useManualGrossRate ? manualGrossRate : undefined
+    );
+    const electricityCostUSD = calculateUSD(
+      electricityCost,
+      electricityCurrency,
+      useManualElectricityRate ? manualElectricityRate : undefined
+    );
+    const serviceCostUSD = calculateUSD(
+      serviceCost,
+      serviceCurrency,
+      useManualServiceRate ? manualServiceRate : undefined
+    );
 
     // Apply discount to costs
     const discountedElectricity = electricityCostUSD * (1 - discountPercent / 100);
@@ -141,8 +128,6 @@ export default function AddIncomeScreen() {
       serviceCurrency,
       serviceCostUSD: discountedService,
       discountPercent,
-      netIncome: netIncomeUSD / (btcPrice || 100000), // Convert back to BTC for net
-      netIncomeCurrency: 'BTC',
       netIncomeUSD,
       reinvestment: didReinvest
         ? {
@@ -220,19 +205,46 @@ export default function AddIncomeScreen() {
                 keyboardType="decimal-pad"
               />
             </View>
-            <CurrencySelector
+            <CurrencyPicker
               value={grossIncomeCurrency}
               onChange={setGrossIncomeCurrency}
               label="Currency"
             />
           </View>
+
+          <Spacer size={3} />
+
+          <Pressable
+            style={styles.toggleRow}
+            onPress={() => setUseManualGrossRate(!useManualGrossRate)}
+          >
+            <Text variant="caption" color="muted">Use manual price</Text>
+            <Icon
+              name={useManualGrossRate ? 'checkbox' : 'square-outline'}
+              size={20}
+              color={useManualGrossRate ? 'brand' : 'muted'}
+            />
+          </Pressable>
+
+          {useManualGrossRate && (
+            <>
+              <Spacer size={2} />
+              <TextInput
+                value={manualGrossRate}
+                onChangeText={setManualGrossRate}
+                label="USD Rate"
+                placeholder={`1 ${grossIncomeCurrency} = ? USD`}
+                keyboardType="decimal-pad"
+              />
+            </>
+          )}
         </Card>
 
         <Spacer size={4} />
 
         {/* Costs */}
         <Card padding="lg">
-          <Text variant="label" color="muted">COSTS</Text>
+          <Text variant="label" color="muted">ELECTRICITY COST</Text>
           <Spacer size={4} />
 
           <View style={styles.amountRow}>
@@ -240,18 +252,51 @@ export default function AddIncomeScreen() {
               <TextInput
                 value={electricityCost}
                 onChangeText={setElectricityCost}
-                label="Electricity"
+                label="Amount"
                 placeholder="0.00000000"
                 keyboardType="decimal-pad"
               />
             </View>
-            <CurrencySelector
+            <CurrencyPicker
               value={electricityCurrency}
               onChange={setElectricityCurrency}
               label="Paid in"
             />
           </View>
 
+          <Spacer size={3} />
+
+          <Pressable
+            style={styles.toggleRow}
+            onPress={() => setUseManualElectricityRate(!useManualElectricityRate)}
+          >
+            <Text variant="caption" color="muted">Use manual price</Text>
+            <Icon
+              name={useManualElectricityRate ? 'checkbox' : 'square-outline'}
+              size={20}
+              color={useManualElectricityRate ? 'brand' : 'muted'}
+            />
+          </Pressable>
+
+          {useManualElectricityRate && (
+            <>
+              <Spacer size={2} />
+              <TextInput
+                value={manualElectricityRate}
+                onChangeText={setManualElectricityRate}
+                label="USD Rate"
+                placeholder={`1 ${electricityCurrency} = ? USD`}
+                keyboardType="decimal-pad"
+              />
+            </>
+          )}
+        </Card>
+
+        <Spacer size={4} />
+
+        {/* Service Cost */}
+        <Card padding="lg">
+          <Text variant="label" color="muted">SERVICE FEE</Text>
           <Spacer size={4} />
 
           <View style={styles.amountRow}>
@@ -259,17 +304,44 @@ export default function AddIncomeScreen() {
               <TextInput
                 value={serviceCost}
                 onChangeText={setServiceCost}
-                label="Service Fee"
+                label="Amount"
                 placeholder="0.00000000"
                 keyboardType="decimal-pad"
               />
             </View>
-            <CurrencySelector
+            <CurrencyPicker
               value={serviceCurrency}
               onChange={setServiceCurrency}
               label="Paid in"
             />
           </View>
+
+          <Spacer size={3} />
+
+          <Pressable
+            style={styles.toggleRow}
+            onPress={() => setUseManualServiceRate(!useManualServiceRate)}
+          >
+            <Text variant="caption" color="muted">Use manual price</Text>
+            <Icon
+              name={useManualServiceRate ? 'checkbox' : 'square-outline'}
+              size={20}
+              color={useManualServiceRate ? 'brand' : 'muted'}
+            />
+          </Pressable>
+
+          {useManualServiceRate && (
+            <>
+              <Spacer size={2} />
+              <TextInput
+                value={manualServiceRate}
+                onChangeText={setManualServiceRate}
+                label="USD Rate"
+                placeholder={`1 ${serviceCurrency} = ? USD`}
+                keyboardType="decimal-pad"
+              />
+            </>
+          )}
         </Card>
 
         <Spacer size={4} />
@@ -320,7 +392,7 @@ export default function AddIncomeScreen() {
                     keyboardType="decimal-pad"
                   />
                 </View>
-                <CurrencySelector
+                <CurrencyPicker
                   value={reinvestCurrency}
                   onChange={setReinvestCurrency}
                   label="Currency"
@@ -410,19 +482,6 @@ const styles = StyleSheet.create({
   },
   amountInput: {
     flex: 1,
-  },
-  currencySelector: {
-    gap: 4,
-  },
-  currencyButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  currencyButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
   },
   toggleRow: {
     flexDirection: 'row',
