@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { View, ScrollView, StyleSheet, Pressable, Modal, TouchableWithoutFeedback } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
@@ -7,6 +7,60 @@ import { Text, Button, Icon, Spacer, Badge } from '@/components/atoms';
 import { Card, GlassCard, MetricDisplay } from '@/components/molecules';
 import { useFarmContext } from '@/contexts';
 import type { DailyIncomeRecord, InvestmentRecord } from '@/types';
+
+// ═══════════════════════════════════════════════════════════════════
+// ACTION MENU
+// ═══════════════════════════════════════════════════════════════════
+
+interface ActionMenuProps {
+  visible: boolean;
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function ActionMenu({ visible, onClose, onEdit, onDelete }: ActionMenuProps) {
+  const { tokens } = useTheme();
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.menuOverlay}>
+          <TouchableWithoutFeedback>
+            <View style={[styles.menuContainer, { backgroundColor: tokens.colors.background.secondary }]}>
+              <Pressable
+                style={[styles.menuItem, { borderBottomColor: tokens.colors.border.muted }]}
+                onPress={() => {
+                  onClose();
+                  onEdit();
+                }}
+              >
+                <Icon name="create-outline" size={22} color="brand" />
+                <Text variant="body" weight="semibold">Edit Miner</Text>
+              </Pressable>
+
+              <Pressable
+                style={styles.menuItem}
+                onPress={() => {
+                  onClose();
+                  onDelete();
+                }}
+              >
+                <Icon name="trash-outline" size={22} color="error" />
+                <Text variant="body" weight="semibold" color="error">Delete Miner</Text>
+              </Pressable>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // TAB SELECTOR
@@ -409,6 +463,7 @@ export default function MinerDetailScreen() {
   } = useFarmContext();
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [showMenu, setShowMenu] = useState(false);
 
   const miner = getMinerWithStats(id || '');
   const incomeRecords = getIncomeRecordsForMiner(id || '');
@@ -461,24 +516,12 @@ export default function MinerDetailScreen() {
         >
           Back
         </Button>
-        <View style={styles.headerActions}>
-          <Button
-            variant="ghost"
-            size="sm"
-            leftIcon={<Icon name="create-outline" size={20} color="brand" />}
-            onPress={() => router.push(`/farm/edit?minerId=${id}`)}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            leftIcon={<Icon name="trash-outline" size={20} color="error" />}
-            onPress={handleDelete}
-          >
-            Delete
-          </Button>
-        </View>
+        <Pressable
+          style={[styles.settingsButton, { backgroundColor: tokens.colors.background.tertiary }]}
+          onPress={() => setShowMenu(true)}
+        >
+          <Icon name="ellipsis-vertical" size={22} color="primary" />
+        </Pressable>
       </View>
 
       {/* Title */}
@@ -523,6 +566,14 @@ export default function MinerDetailScreen() {
           />
         )}
       </ScrollView>
+
+      {/* Action Menu */}
+      <ActionMenu
+        visible={showMenu}
+        onClose={() => setShowMenu(false)}
+        onEdit={() => router.push(`/farm/edit?minerId=${id}`)}
+        onDelete={handleDelete}
+      />
     </View>
   );
 }
@@ -540,10 +591,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 8,
     paddingBottom: 8,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 4,
   },
   titleContainer: {
     paddingHorizontal: 16,
@@ -630,5 +677,33 @@ const styles = StyleSheet.create({
   detailsRow: {
     flexDirection: 'row',
     gap: 12,
+  },
+  settingsButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  menuContainer: {
+    width: '100%',
+    maxWidth: 300,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
   },
 });
