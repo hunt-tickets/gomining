@@ -70,8 +70,9 @@ export function TextInput({
       ? input.borderFocus
       : input.border,
     borderRadius: input.radius,
-    paddingHorizontal: tokens.spacing[4],
-    paddingVertical: multiline ? tokens.spacing[3] : tokens.spacing[3],
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    minHeight: multiline ? undefined : 56,
     opacity: disabled ? 0.5 : 1,
     gap: tokens.spacing[3],
   };
@@ -81,6 +82,9 @@ export function TextInput({
     fontSize: tokens.typography.sizes.base,
     color: input.text,
     paddingVertical: 0,
+    // @ts-ignore - Web-specific property to remove focus outline
+    outlineStyle: 'none',
+    outlineWidth: 0,
     ...(multiline && {
       minHeight: numberOfLines * 24,
       textAlignVertical: 'top',

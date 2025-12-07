@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Button, Icon, Spacer } from '@/components/atoms';
-import { Card, TextInput, SliderInput, CurrencyPicker } from '@/components/molecules';
+import { Card, TextInput, SliderInput, CurrencyPicker, DatePicker } from '@/components/molecules';
 import { useFarmContext } from '@/contexts';
 import type { Currency } from '@/types';
 
@@ -26,20 +26,14 @@ export default function AddIncomeScreen() {
   // Gross income
   const [grossIncome, setGrossIncome] = useState('');
   const [grossIncomeCurrency, setGrossIncomeCurrency] = useState<Currency>('BTC');
-  const [useManualGrossRate, setUseManualGrossRate] = useState(false);
-  const [manualGrossRate, setManualGrossRate] = useState('');
 
   // Electricity
   const [electricityCost, setElectricityCost] = useState('');
   const [electricityCurrency, setElectricityCurrency] = useState<Currency>('BTC');
-  const [useManualElectricityRate, setUseManualElectricityRate] = useState(false);
-  const [manualElectricityRate, setManualElectricityRate] = useState('');
 
   // Service
   const [serviceCost, setServiceCost] = useState('');
   const [serviceCurrency, setServiceCurrency] = useState<Currency>('BTC');
-  const [useManualServiceRate, setUseManualServiceRate] = useState(false);
-  const [manualServiceRate, setManualServiceRate] = useState('');
 
   // Discount
   const [discountPercent, setDiscountPercent] = useState(0);
@@ -79,10 +73,10 @@ export default function AddIncomeScreen() {
     return rates[currency] || 1;
   };
 
-  // Calculate USD values with manual rate option
-  const calculateUSD = (amount: string, currency: Currency, manualRate?: string): number => {
+  // Calculate USD values
+  const calculateUSD = (amount: string, currency: Currency): number => {
     const num = parseFloat(amount) || 0;
-    const rate = manualRate ? parseFloat(manualRate) : getDefaultRate(currency);
+    const rate = getDefaultRate(currency);
     return num * rate;
   };
 
@@ -93,21 +87,9 @@ export default function AddIncomeScreen() {
     const electricityCostNum = parseFloat(electricityCost) || 0;
     const serviceCostNum = parseFloat(serviceCost) || 0;
 
-    const grossIncomeUSD = calculateUSD(
-      grossIncome,
-      grossIncomeCurrency,
-      useManualGrossRate ? manualGrossRate : undefined
-    );
-    const electricityCostUSD = calculateUSD(
-      electricityCost,
-      electricityCurrency,
-      useManualElectricityRate ? manualElectricityRate : undefined
-    );
-    const serviceCostUSD = calculateUSD(
-      serviceCost,
-      serviceCurrency,
-      useManualServiceRate ? manualServiceRate : undefined
-    );
+    const grossIncomeUSD = calculateUSD(grossIncome, grossIncomeCurrency);
+    const electricityCostUSD = calculateUSD(electricityCost, electricityCurrency);
+    const serviceCostUSD = calculateUSD(serviceCost, serviceCurrency);
 
     // Apply discount to costs
     const discountedElectricity = electricityCostUSD * (1 - discountPercent / 100);
@@ -179,12 +161,10 @@ export default function AddIncomeScreen() {
 
         {/* Date */}
         <Card padding="lg">
-          <TextInput
+          <DatePicker
             value={date}
-            onChangeText={setDate}
+            onChange={setDate}
             label="Date"
-            placeholder="YYYY-MM-DD"
-            leftIcon="calendar-outline"
           />
         </Card>
 
@@ -211,33 +191,6 @@ export default function AddIncomeScreen() {
               label="Currency"
             />
           </View>
-
-          <Spacer size={3} />
-
-          <Pressable
-            style={styles.toggleRow}
-            onPress={() => setUseManualGrossRate(!useManualGrossRate)}
-          >
-            <Text variant="caption" color="muted">Use manual price</Text>
-            <Icon
-              name={useManualGrossRate ? 'checkbox' : 'square-outline'}
-              size={20}
-              color={useManualGrossRate ? 'brand' : 'muted'}
-            />
-          </Pressable>
-
-          {useManualGrossRate && (
-            <>
-              <Spacer size={2} />
-              <TextInput
-                value={manualGrossRate}
-                onChangeText={setManualGrossRate}
-                label="USD Rate"
-                placeholder={`1 ${grossIncomeCurrency} = ? USD`}
-                keyboardType="decimal-pad"
-              />
-            </>
-          )}
         </Card>
 
         <Spacer size={4} />
@@ -263,33 +216,6 @@ export default function AddIncomeScreen() {
               label="Paid in"
             />
           </View>
-
-          <Spacer size={3} />
-
-          <Pressable
-            style={styles.toggleRow}
-            onPress={() => setUseManualElectricityRate(!useManualElectricityRate)}
-          >
-            <Text variant="caption" color="muted">Use manual price</Text>
-            <Icon
-              name={useManualElectricityRate ? 'checkbox' : 'square-outline'}
-              size={20}
-              color={useManualElectricityRate ? 'brand' : 'muted'}
-            />
-          </Pressable>
-
-          {useManualElectricityRate && (
-            <>
-              <Spacer size={2} />
-              <TextInput
-                value={manualElectricityRate}
-                onChangeText={setManualElectricityRate}
-                label="USD Rate"
-                placeholder={`1 ${electricityCurrency} = ? USD`}
-                keyboardType="decimal-pad"
-              />
-            </>
-          )}
         </Card>
 
         <Spacer size={4} />
@@ -315,33 +241,6 @@ export default function AddIncomeScreen() {
               label="Paid in"
             />
           </View>
-
-          <Spacer size={3} />
-
-          <Pressable
-            style={styles.toggleRow}
-            onPress={() => setUseManualServiceRate(!useManualServiceRate)}
-          >
-            <Text variant="caption" color="muted">Use manual price</Text>
-            <Icon
-              name={useManualServiceRate ? 'checkbox' : 'square-outline'}
-              size={20}
-              color={useManualServiceRate ? 'brand' : 'muted'}
-            />
-          </Pressable>
-
-          {useManualServiceRate && (
-            <>
-              <Spacer size={2} />
-              <TextInput
-                value={manualServiceRate}
-                onChangeText={setManualServiceRate}
-                label="USD Rate"
-                placeholder={`1 ${serviceCurrency} = ? USD`}
-                keyboardType="decimal-pad"
-              />
-            </>
-          )}
         </Card>
 
         <Spacer size={4} />

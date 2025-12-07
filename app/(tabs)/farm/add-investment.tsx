@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Button, Icon, Spacer } from '@/components/atoms';
-import { Card, TextInput, SliderInput, CurrencyPicker } from '@/components/molecules';
+import { Card, TextInput, SliderInput, CurrencyPicker, DatePicker } from '@/components/molecules';
 import { useFarmContext } from '@/contexts';
 import type { InvestmentType, Currency } from '@/types';
 
@@ -80,8 +80,6 @@ export default function AddInvestmentScreen() {
   const [type, setType] = useState<InvestmentType>('initial');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState<Currency>('USD');
-  const [useManualRate, setUseManualRate] = useState(false);
-  const [manualRate, setManualRate] = useState('');
   const [note, setNote] = useState('');
 
   // Details based on type
@@ -120,7 +118,7 @@ export default function AddInvestmentScreen() {
   // Calculate USD value
   const calculateUSD = (): number => {
     const num = parseFloat(amount) || 0;
-    const rate = useManualRate && manualRate ? parseFloat(manualRate) : getDefaultRate(currency);
+    const rate = getDefaultRate(currency);
     return num * rate;
   };
 
@@ -157,7 +155,6 @@ export default function AddInvestmentScreen() {
       amount: amountNum,
       currency,
       amountUSD,
-      manualRate: useManualRate && manualRate ? parseFloat(manualRate) : undefined,
       details: Object.keys(details).length > 0 ? details : undefined,
       note: note || undefined,
     });
@@ -202,12 +199,10 @@ export default function AddInvestmentScreen() {
 
         {/* Date */}
         <Card padding="lg">
-          <TextInput
+          <DatePicker
             value={date}
-            onChangeText={setDate}
+            onChange={setDate}
             label="Date"
-            placeholder="YYYY-MM-DD"
-            leftIcon="calendar-outline"
           />
         </Card>
 
@@ -243,33 +238,6 @@ export default function AddInvestmentScreen() {
               label="Currency"
             />
           </View>
-
-          <Spacer size={3} />
-
-          <Pressable
-            style={styles.toggleRow}
-            onPress={() => setUseManualRate(!useManualRate)}
-          >
-            <Text variant="caption" color="muted">Use manual price</Text>
-            <Icon
-              name={useManualRate ? 'checkbox' : 'square-outline'}
-              size={20}
-              color={useManualRate ? 'brand' : 'muted'}
-            />
-          </Pressable>
-
-          {useManualRate && (
-            <>
-              <Spacer size={2} />
-              <TextInput
-                value={manualRate}
-                onChangeText={setManualRate}
-                label="USD Rate"
-                placeholder={`1 ${currency} = ? USD`}
-                keyboardType="decimal-pad"
-              />
-            </>
-          )}
 
           {amount && (
             <>

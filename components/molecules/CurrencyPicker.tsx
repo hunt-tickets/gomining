@@ -295,6 +295,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 12,
     paddingVertical: 12,
+    minHeight: 56,
     borderRadius: 10,
     borderWidth: 1,
   },
@@ -337,6 +338,9 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     padding: 0,
+    // @ts-ignore - Web-specific property to remove focus outline
+    outlineStyle: 'none',
+    outlineWidth: 0,
   },
   currencyItem: {
     flexDirection: 'row',
