@@ -293,10 +293,11 @@ export default function AddInvestmentScreen() {
               label="Before"
               value={hashrateBefore}
               onValueChange={setHashrateBefore}
-              min={1}
+              min={0.1}
               max={5000}
-              step={1}
-              valueFormatter={(v) => `${v} TH/s`}
+              step={0.1}
+              unit="TH/s"
+              decimals={1}
             />
 
             <Spacer size={6} />
@@ -305,17 +306,18 @@ export default function AddInvestmentScreen() {
               label="After"
               value={hashrateAfter}
               onValueChange={setHashrateAfter}
-              min={1}
+              min={0.1}
               max={5000}
-              step={1}
-              valueFormatter={(v) => `${v} TH/s`}
+              step={0.1}
+              unit="TH/s"
+              decimals={1}
             />
 
             <Spacer size={4} />
             <View style={styles.changeIndicator}>
               <Icon name="arrow-up" size={16} color="success" />
               <Text variant="body" color="success">
-                +{hashrateAfter - hashrateBefore} TH/s
+                +{(hashrateAfter - hashrateBefore).toFixed(1)} TH/s
               </Text>
             </View>
           </Card>
@@ -330,10 +332,11 @@ export default function AddInvestmentScreen() {
               label="Before"
               value={efficiencyBefore}
               onValueChange={setEfficiencyBefore}
-              min={15}
-              max={50}
-              step={1}
-              valueFormatter={(v) => `${v} W/TH`}
+              min={10}
+              max={60}
+              step={0.1}
+              unit="W/TH"
+              decimals={1}
             />
 
             <Spacer size={6} />
@@ -342,17 +345,18 @@ export default function AddInvestmentScreen() {
               label="After"
               value={efficiencyAfter}
               onValueChange={setEfficiencyAfter}
-              min={15}
-              max={50}
-              step={1}
-              valueFormatter={(v) => `${v} W/TH`}
+              min={10}
+              max={60}
+              step={0.1}
+              unit="W/TH"
+              decimals={1}
             />
 
             <Spacer size={4} />
             <View style={styles.changeIndicator}>
               <Icon name="arrow-down" size={16} color="success" />
               <Text variant="body" color="success">
-                -{efficiencyBefore - efficiencyAfter} W/TH (better)
+                -{(efficiencyBefore - efficiencyAfter).toFixed(1)} W/TH (better)
               </Text>
             </View>
           </Card>
@@ -369,8 +373,9 @@ export default function AddInvestmentScreen() {
               onValueChange={setTokenDaysBought}
               min={0}
               max={400}
-              step={10}
-              valueFormatter={(v) => `${v} days`}
+              step={1}
+              unit="days"
+              decimals={0}
             />
 
             <Spacer size={4} />

@@ -1,9 +1,8 @@
-import React from 'react';
-import { View, ViewStyle } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ViewStyle, TextInput, Pressable, StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   runOnJS,
 } from 'react-native-reanimated';
 import {
@@ -27,6 +26,10 @@ export interface SliderInputProps {
   label?: string;
   valueFormatter?: (value: number) => string;
   disabled?: boolean;
+  /** Unit suffix for manual input (e.g., "TH/s", "%", "W/TH") */
+  unit?: string;
+  /** Number of decimal places allowed */
+  decimals?: number;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -42,10 +45,44 @@ export function SliderInput({
   label,
   valueFormatter,
   disabled = false,
+  unit,
+  decimals = 2,
 }: SliderInputProps) {
   const tokens = useThemeTokens();
   const sliderWidth = useSharedValue(0);
   const thumbPosition = useSharedValue(0);
+
+  // Manual input state
+  const [isEditing, setIsEditing] = useState(false);
+  const [inputValue, setInputValue] = useState(value.toString());
+
+  // Sync input value with prop value when not editing
+  useEffect(() => {
+    if (!isEditing) {
+      setInputValue(value.toString());
+    }
+  }, [value, isEditing]);
+
+  // Handle manual input submission
+  const handleInputSubmit = () => {
+    const parsed = parseFloat(inputValue);
+    if (!isNaN(parsed)) {
+      // Clamp to min/max
+      let newValue = Math.max(min, Math.min(max, parsed));
+      // Round to step if step is defined
+      if (step) {
+        newValue = Math.round(newValue / step) * step;
+      }
+      // Round to decimal places
+      newValue = parseFloat(newValue.toFixed(decimals));
+      onValueChange(newValue);
+      setInputValue(newValue.toString());
+    } else {
+      // Reset to current value if invalid
+      setInputValue(value.toString());
+    }
+    setIsEditing(false);
+  };
 
   // Calculate initial thumb position based on value
   const getThumbPosition = (val: number, width: number) => {
@@ -125,6 +162,14 @@ export function SliderInput({
 
   const displayValue = valueFormatter ? valueFormatter(value) : value.toString();
 
+  // Determine what to show: formatted value or raw value for editing
+  const getDisplayText = () => {
+    if (valueFormatter) {
+      return valueFormatter(value);
+    }
+    return unit ? `${value} ${unit}` : value.toString();
+  };
+
   return (
     <View style={{ opacity: disabled ? 0.5 : 1 }}>
       {label && (
@@ -132,15 +177,57 @@ export function SliderInput({
           style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
+            alignItems: 'center',
             marginBottom: tokens.spacing[2],
           }}
         >
           <Text variant="label" color="secondary">
             {label}
           </Text>
-          <Text variant="body" weight="semibold" color="brand">
-            {displayValue}
-          </Text>
+
+          {isEditing ? (
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={[
+                  styles.manualInput,
+                  {
+                    color: tokens.colors.text.primary,
+                    backgroundColor: tokens.colors.background.tertiary,
+                    borderColor: tokens.colors.brand.primary,
+                  },
+                ]}
+                value={inputValue}
+                onChangeText={setInputValue}
+                onBlur={handleInputSubmit}
+                onSubmitEditing={handleInputSubmit}
+                keyboardType="decimal-pad"
+                autoFocus
+                selectTextOnFocus
+              />
+              {unit && (
+                <Text variant="caption" color="muted" style={styles.unitLabel}>
+                  {unit}
+                </Text>
+              )}
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => {
+                if (!disabled) {
+                  setIsEditing(true);
+                  setInputValue(value.toString());
+                }
+              }}
+              style={[
+                styles.valueDisplay,
+                { backgroundColor: tokens.colors.background.tertiary },
+              ]}
+            >
+              <Text variant="body" weight="semibold" color="brand">
+                {getDisplayText()}
+              </Text>
+            </Pressable>
+          )}
         </View>
       )}
 
@@ -181,3 +268,33 @@ export function SliderInput({
     </View>
   );
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// STYLES
+// ═══════════════════════════════════════════════════════════════════
+
+const styles = StyleSheet.create({
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  manualInput: {
+    minWidth: 80,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 2,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  unitLabel: {
+    marginLeft: 4,
+  },
+  valueDisplay: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+});

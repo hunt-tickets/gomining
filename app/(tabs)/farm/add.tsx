@@ -79,25 +79,27 @@ export default function AddMinerScreen() {
           <Spacer size={4} />
 
           <SliderInput
-            label="Hashrate (TH/s)"
+            label="Hashrate"
             value={hashrate}
             onValueChange={setHashrate}
-            min={1}
+            min={0.1}
             max={5000}
-            step={1}
-            valueFormatter={(v) => `${v} TH/s`}
+            step={0.1}
+            unit="TH/s"
+            decimals={1}
           />
 
           <Spacer size={6} />
 
           <SliderInput
-            label="Efficiency (W/TH)"
+            label="Efficiency"
             value={efficiency}
             onValueChange={setEfficiency}
-            min={15}
-            max={50}
-            step={1}
-            valueFormatter={(v) => `${v} W/TH`}
+            min={10}
+            max={60}
+            step={0.1}
+            unit="W/TH"
+            decimals={1}
           />
         </Card>
 
@@ -110,8 +112,9 @@ export default function AddMinerScreen() {
             onValueChange={setDiscountPercent}
             min={0}
             max={29}
-            step={0.5}
-            valueFormatter={(v) => v === 0 ? 'No discount' : `${v.toFixed(1)}%`}
+            step={0.1}
+            unit="%"
+            decimals={1}
           />
         </Card>
 

@@ -354,8 +354,9 @@ export default function AddIncomeScreen() {
             onValueChange={setDiscountPercent}
             min={0}
             max={29}
-            step={0.5}
-            valueFormatter={(v) => `${v.toFixed(1)}%`}
+            step={0.1}
+            unit="%"
+            decimals={1}
           />
         </Card>
 
