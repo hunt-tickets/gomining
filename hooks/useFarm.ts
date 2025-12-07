@@ -13,7 +13,7 @@ import type { Miner, CreateMinerInput, UpdateMinerInput, MinerWithStats } from '
 // HOOK
 // ═══════════════════════════════════════════════════════════════════
 
-export function useFarm(btcPrice: number, difficulty: number) {
+export function useFarm(btcPrice: number = 0, difficulty: number = 0) {
   const [miners, setMiners] = useState<Miner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

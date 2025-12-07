@@ -1,54 +1,85 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
-import { Link, router } from 'expo-router';
+import { View, ScrollView, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Text, Button, Icon, Spacer, Badge } from '@/components/atoms';
 import { Card, GlassCard, MetricDisplay } from '@/components/molecules';
+import { useFarm } from '@/hooks/useFarm';
+import type { MinerWithStats } from '@/types';
 
 // ═══════════════════════════════════════════════════════════════════
-// MOCK DATA (Will be replaced with real data from storage)
+// EMPTY STATE COMPONENT
 // ═══════════════════════════════════════════════════════════════════
 
-const mockMiners = [
-  {
-    id: '1',
-    name: 'Main Rig',
-    hashrate: 100,
-    efficiency: 25,
-    dailyProfit: 1.74,
-    discounts: { token: 15, vip: 3, daily: 2 },
-  },
-  {
-    id: '2',
-    name: 'Secondary',
-    hashrate: 200,
-    efficiency: 20,
-    dailyProfit: 4.12,
-    discounts: { token: 10, vip: 2, daily: 3 },
-  },
-  {
-    id: '3',
-    name: 'Efficient One',
-    hashrate: 150,
-    efficiency: 15,
-    dailyProfit: 3.85,
-    discounts: { token: 20, vip: 6, daily: 3 },
-  },
-];
+function EmptyFarmState({ onAddMiner }: { onAddMiner: () => void }) {
+  const { tokens } = useTheme();
+
+  return (
+    <View style={styles.emptyState}>
+      <Card variant="elevated" padding="xl">
+        <View style={styles.emptyContent}>
+          <View style={[styles.iconCircle, { backgroundColor: tokens.colors.brand.primary + '20' }]}>
+            <Icon name="hardware-chip" size={48} color="brand" />
+          </View>
+
+          <Spacer size={6} />
+
+          <Text variant="h3" align="center">
+            Start Your Mining Farm
+          </Text>
+
+          <Spacer size={2} />
+
+          <Text variant="body" color="muted" align="center">
+            Add your first GoMining miner to track hashrate, calculate profits, and optimize your investment strategy.
+          </Text>
+
+          <Spacer size={6} />
+
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            leftIcon={<Icon name="add" size={20} color="#FFFFFF" />}
+            onPress={onAddMiner}
+          >
+            Add Your First Miner
+          </Button>
+
+          <Spacer size={4} />
+
+          <View style={styles.featureList}>
+            <View style={styles.featureItem}>
+              <Icon name="checkmark-circle" size={16} color="success" />
+              <Text variant="bodySmall" color="muted">Real-time profit calculations</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Icon name="checkmark-circle" size={16} color="success" />
+              <Text variant="bodySmall" color="muted">Track discount multipliers</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Icon name="checkmark-circle" size={16} color="success" />
+              <Text variant="bodySmall" color="muted">AI-powered investment advice</Text>
+            </View>
+          </View>
+        </View>
+      </Card>
+    </View>
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // MINER CARD COMPONENT
 // ═══════════════════════════════════════════════════════════════════
 
 interface MinerCardProps {
-  miner: typeof mockMiners[0];
+  miner: MinerWithStats;
   onPress: () => void;
 }
 
 function MinerCard({ miner, onPress }: MinerCardProps) {
   const { tokens } = useTheme();
-  const totalDiscount = miner.discounts.token + miner.discounts.vip + miner.discounts.daily;
 
   return (
     <GlassCard onPress={onPress} padding="md">
@@ -74,15 +105,15 @@ function MinerCard({ miner, onPress }: MinerCardProps) {
         <View style={styles.metricItem}>
           <Text variant="caption" color="muted">Daily Profit</Text>
           <Text variant="body" weight="semibold" color="success">
-            ${miner.dailyProfit.toFixed(2)}
+            ${miner.dailyProfitUSD.toFixed(2)}
           </Text>
         </View>
       </View>
 
-      {totalDiscount > 0 && (
+      {miner.totalDiscountPercent > 0 && (
         <>
           <Spacer size={3} />
-          <Badge variant="success">-{totalDiscount}% Discounts</Badge>
+          <Badge variant="success">-{miner.totalDiscountPercent.toFixed(0)}% Discounts</Badge>
         </>
       )}
     </GlassCard>
@@ -93,11 +124,15 @@ function MinerCard({ miner, onPress }: MinerCardProps) {
 // FARM SUMMARY COMPONENT
 // ═══════════════════════════════════════════════════════════════════
 
-function FarmSummary() {
+interface FarmSummaryProps {
+  miners: MinerWithStats[];
+}
+
+function FarmSummary({ miners }: FarmSummaryProps) {
   const { tokens } = useTheme();
 
-  const totalHashrate = mockMiners.reduce((sum, m) => sum + m.hashrate, 0);
-  const totalDailyProfit = mockMiners.reduce((sum, m) => sum + m.dailyProfit, 0);
+  const totalHashrate = miners.reduce((sum, m) => sum + m.hashrate, 0);
+  const totalDailyProfit = miners.reduce((sum, m) => sum + m.dailyProfitUSD, 0);
 
   return (
     <Card variant="elevated" padding="lg">
@@ -116,8 +151,6 @@ function FarmSummary() {
           value={totalDailyProfit}
           format="currency"
           size="lg"
-          trend="up"
-          trendValue={2.3}
         />
       </View>
 
@@ -144,6 +177,7 @@ function FarmSummary() {
 export default function FarmScreen() {
   const { tokens } = useTheme();
   const insets = useSafeAreaInsets();
+  const { minersWithStats, isLoading } = useFarm();
 
   const handleMinerPress = (id: string) => {
     router.push(`/farm/${id}`);
@@ -152,6 +186,8 @@ export default function FarmScreen() {
   const handleAddMiner = () => {
     router.push('/farm/add');
   };
+
+  const hasMiners = minersWithStats.length > 0;
 
   return (
     <View style={[styles.container, { backgroundColor: tokens.colors.background.primary }]}>
@@ -167,60 +203,66 @@ export default function FarmScreen() {
         <View style={styles.header}>
           <Text variant="h2">My Farm</Text>
           <Text variant="body" color="muted">
-            {mockMiners.length} miners active
+            {hasMiners ? `${minersWithStats.length} miner${minersWithStats.length > 1 ? 's' : ''} active` : 'Get started below'}
           </Text>
         </View>
 
         <Spacer size={6} />
 
-        {/* Farm Summary */}
-        <FarmSummary />
+        {!hasMiners ? (
+          <EmptyFarmState onAddMiner={handleAddMiner} />
+        ) : (
+          <>
+            {/* Farm Summary */}
+            <FarmSummary miners={minersWithStats} />
 
-        <Spacer size={6} />
+            <Spacer size={6} />
 
-        {/* Miners List */}
-        <View style={styles.sectionHeader}>
-          <Text variant="h4">Miners</Text>
-          <Button
-            variant="ghost"
-            size="sm"
-            leftIcon={<Icon name="add" size={18} color="brand" />}
-            onPress={handleAddMiner}
-          >
-            Add
-          </Button>
-        </View>
+            {/* Miners List */}
+            <View style={styles.sectionHeader}>
+              <Text variant="h4">Miners</Text>
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={<Icon name="add" size={18} color="brand" />}
+                onPress={handleAddMiner}
+              >
+                Add
+              </Button>
+            </View>
 
-        <Spacer size={3} />
-
-        <View style={styles.minersList}>
-          {mockMiners.map((miner) => (
-            <MinerCard
-              key={miner.id}
-              miner={miner}
-              onPress={() => handleMinerPress(miner.id)}
-            />
-          ))}
-        </View>
-
-        <Spacer size={6} />
-
-        {/* Strategy Simulator CTA */}
-        <Card variant="outlined" padding="lg">
-          <View style={styles.ctaContent}>
-            <Icon name="sparkles" size={32} color="brand" />
             <Spacer size={3} />
-            <Text variant="h4" align="center">Strategy Simulator</Text>
-            <Spacer size={1} />
-            <Text variant="bodySmall" color="muted" align="center">
-              Compare reinvestment strategies and project your earnings
-            </Text>
-            <Spacer size={4} />
-            <Button variant="primary" fullWidth>
-              Run Simulation
-            </Button>
-          </View>
-        </Card>
+
+            <View style={styles.minersList}>
+              {minersWithStats.map((miner) => (
+                <MinerCard
+                  key={miner.id}
+                  miner={miner}
+                  onPress={() => handleMinerPress(miner.id)}
+                />
+              ))}
+            </View>
+
+            <Spacer size={6} />
+
+            {/* Strategy Simulator CTA */}
+            <Card variant="outlined" padding="lg">
+              <View style={styles.ctaContent}>
+                <Icon name="sparkles" size={32} color="brand" />
+                <Spacer size={3} />
+                <Text variant="h4" align="center">Strategy Simulator</Text>
+                <Spacer size={1} />
+                <Text variant="bodySmall" color="muted" align="center">
+                  Compare reinvestment strategies and project your earnings
+                </Text>
+                <Spacer size={4} />
+                <Button variant="primary" fullWidth>
+                  Run Simulation
+                </Button>
+              </View>
+            </Card>
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -285,5 +327,28 @@ const styles = StyleSheet.create({
   },
   ctaContent: {
     alignItems: 'center',
+  },
+  emptyState: {
+    flex: 1,
+  },
+  emptyContent: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  iconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureList: {
+    gap: 12,
+    alignSelf: 'stretch',
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 });
